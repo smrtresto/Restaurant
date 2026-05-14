@@ -1,5 +1,5 @@
-import Razorpay from 'razorpay';
-import { createClient } from '@supabase/supabase-js';
+import Razorpay from 'https://esm.sh/razorpay@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 export async function onRequest(context) {
   const { request, env } = context;
