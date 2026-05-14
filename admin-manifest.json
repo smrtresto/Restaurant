@@ -1,0 +1,21 @@
+{
+  "name": "Mr Chef Admin",
+  "short_name": "Chef Admin",
+  "description": "Admin Panel for Mr Chef Restaurant",
+  "start_url": "/admin.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

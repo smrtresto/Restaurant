@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Mr Chef · Admin Panel</title>
+  <meta name="theme-color" content="#000000">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000000;
+      color: #ffffff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 20px;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .admin-header h1 {
+      font-size: 1.5rem;
+      color: #22c55e;
+      font-weight: bold;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .orders-btn {
+      background: #f39c12;
+      color: black;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .logout-btn {
+      background: #ef4444;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 40px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tabs-wrapper {
+      overflow-x: auto;
+      white-space: nowrap;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      scrollbar-width: thin;
+    }
+
+    .tabs {
+      display: inline-flex;
+      gap: 10px;
+      background: rgba(20, 20, 20, 0.6);
+      padding: 6px 12px;
+      border-radius: 50px;
+      backdrop-filter: blur(8px);
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #aaa;
+      padding: 6px 18px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      background: #22c55e;
+      color: black;
+    }
+
+    .tab-content {
+      display: none;
+      position: relative;
+      min-height: 300px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar input {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 30px;
+      padding: 8px 16px;
+      color: white;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .filter-bar input:focus {
+      outline: none;
+      border-color: #22c55e;
+    }
+
+    .list-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 80px;
+    }
+
+    .list-item {
+      background: #1e1e1e;
+      border-radius: 20px;
+      padding: 12px 16px;
+      border: 1px solid #333;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .item-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 2;
+      flex-wrap: wrap;
+    }
+
+    .item-info img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 12px;
+      background: #2a2a2a;
+    }
+
+    .item-details {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      background: #22c55e;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button.danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: #22c55e;
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(24px);
+    }
+
+    .settings-card {
+      background: #1e1e1e;
+      border-radius: 24px;
+      padding: 24px;
+      border: 1px solid #333;
+      margin-top: 20px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      font-weight: bold;
+    }
+
+    .setting-description {
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .fab-add {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: black;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(34, 197, 94, 0.4);
+      transition: 0.25s ease;
+      border: none;
+      z-index: 1000;
+    }
+
+    .fab-add:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 24px rgba(34, 197, 94, 0.6);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #1e1e1e;
+      border-radius: 28px;
+      width: 90%;
+      max-width: 550px;
+      padding: 24px;
+      border: 1px solid #22c55e;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 16px;
+      color: white;
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+      width: auto;
+      margin-right: 8px;
+    }
+
+    .helper-text {
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: -4px;
+      margin-bottom: 8px;
+    }
+
+    .veg-radio-group {
+      display: flex;
+      gap: 24px;
+      margin: 10px 0;
+    }
+
+    .veg-radio {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .day-check-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: black;
+      padding: 8px 20px;
+      border-radius: 40px;
+      z-index: 1100;
+      animation: fadeOut 2s ease;
+    }
+
+    @keyframes fadeOut {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+
+      15% {
+        opacity: 1;
+      }
+
+      85% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    /* Auth Overlay Styles */
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      background: #0a0a0a;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .auth-card {
+      background: rgba(25, 25, 25, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 40px 24px;
+      border-radius: 32px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-icon {
+      font-size: 3rem;
+      color: #22c55e;
+      margin-bottom: 20px;
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .auth-desc {
+      color: #aaa;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .google-login-btn {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .google-login-btn:active {
+      transform: scale(0.98);
+    }
+
+    .google-login-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(34, 197, 94, 0.1);
+      border-top: 4px solid #22c55e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Support Styles for Admin */
+    .admin-ticket-card {
+      background: #1e1e1e;
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid #333;
+      margin-bottom: 16px;
+    }
+
+    .ticket-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .ticket-user {
+      font-weight: 800;
+      color: #22c55e;
+    }
+
+    .ticket-source-badge {
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+
+    .source-wa {
+      background: #25D366;
+      color: #fff;
+    }
+
+    .source-app {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .admin-ticket-body {
+      margin-bottom: 16px;
+    }
+
+    .admin-ticket-subject {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+
+    .admin-ticket-desc {
+      color: #aaa;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .admin-ticket-footer {
+      display: flex;
+      gap: 12px;
+      border-top: 1px solid #333;
+      padding-top: 12px;
+    }
+
+    .ticket-status-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 40px;
+      text-transform: uppercase;
+    }
+
+    .status-open {
+      background: rgba(243, 156, 18, 0.2);
+      color: #f39c12;
+      border: 1px solid rgba(243, 156, 18, 0.3);
+    }
+
+    .status-resolved {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Auth Overlay -->
+  <div id="authOverlay">
+    <div class="auth-card" id="authCard">
+      <div class="loading-spinner"></div>
+      <div class="auth-title">Verifying Admin Access</div>
+      <div class="auth-desc">Securing the dashboard, please wait...</div>
+    </div>
+  </div>
+
+  <div class="admin-header">
+    <h1>👨‍🍳 Mr Chef Admin Panel</h1>
+    <div class="header-buttons">
+      <button id="restaurantOrdersBtn" class="orders-btn">🍳 Restaurant Orders</button>
+      <button id="adminLogoutBtn" class="logout-btn">Logout</button>
+    </div>
+  </div>
+
+  <div class="tabs-wrapper">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="banners">📢 Banners</button>
+      <button class="tab-btn" data-tab="categories">📁 Categories</button>
+      <button class="tab-btn" data-tab="menu">🍽️ Menu Items</button>
+      <button class="tab-btn" data-tab="coupons">🎫 Coupons</button>
+      <button class="tab-btn" data-tab="deliveryzones">🚚 Delivery Zones</button>
+      <button class="tab-btn" data-tab="support">🎧 Support Tickets</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+    </div>
+  </div>
+
+  <!-- Banners Tab -->
+  <div id="bannersTab" class="tab-content active">
+    <div id="bannersList" class="list-view"></div>
+    <button id="addBannerFab" class="fab-add">+</button>
+  </div>
+
+  <!-- Categories Tab -->
+  <div id="categoriesTab" class="tab-content">
+    <div id="categoriesList" class="list-view"></div>
+    <button id="addCategoryFab" class="fab-add">+</button>
+  </div>
+
+  <!-- Menu Tab -->
+  <div id="menuTab" class="tab-content">
+    <div id="menuList" class="list-view"></div>
+    <button id="addMenuItemFab" class="fab-add">+</button>
+  </div>
+
+  <!-- Coupons Tab -->
+  <div id="couponsTab" class="tab-content">
+    <div id="couponsList" class="list-view"></div>
+    <button id="addCouponBtn" class="fab-add">+</button>
+  </div>
+
+  <!-- Delivery Zones Tab -->
+  <div id="deliveryzonesTab" class="tab-content">
+    <div class="filter-bar">
+      <input type="text" id="zoneFilterPincode" placeholder="Filter by Pincode...">
+      <input type="text" id="zoneFilterArea" placeholder="Filter by Area...">
+    </div>
+    <div id="deliveryZonesList" class="list-view"></div>
+    <button id="addZoneBtn" class="fab-add">+</button>
+  </div>
+
+  <!-- Support Tab -->
+  <div id="supportTab" class="tab-content">
+    <div class="filter-bar">
+      <input type="text" id="ticketFilter" placeholder="Search by User or Subject...">
+    </div>
+    <div id="adminTicketsList" class="list-view"></div>
+  </div>
+
+  <!-- Ticket Reply Modal -->
+  <div id="ticketReplyModal" class="modal">
+    <div class="modal-content"
+      style="height: 95vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 20px;">
+      <div class="modal-header"
+        style="padding: 12px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+        <div id="ticketHeaderInfo" style="font-size: 0.9rem; font-weight: bold; color: #22c55e;">Ticket Details</div>
+        <span onclick="closeTicketModal()" style="cursor:pointer; opacity:0.5; font-size: 1.5rem;">&times;</span>
+      </div>
+
+      <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 0;">
+        <!-- Compact Top Info -->
+        <div id="ticketTopInfo"
+          style="padding: 8px 20px; background: #0a0a0a; border-bottom: 1px solid #222; font-size: 0.75rem; color: #aaa;">
+        </div>
+        <div id="adminOrderDetails"
+          style="margin: 5px 20px; padding: 6px 10px; background: rgba(243,156,18,0.05); border-radius: 8px; font-size: 0.7rem; display: none; border: 1px solid rgba(243,156,18,0.15);">
+        </div>
+
+        <!-- Chat Area (Takes maximum space) -->
+        <div id="adminChatThread"
+          style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; background: #000;">
+          <div style="text-align:center; opacity:0.2; padding:20px;">Conversation loading...</div>
+        </div>
+
+        <!-- Compact Reply Area -->
+        <div id="adminReplySection" style="padding: 12px 20px; background: #0a0a0a; border-top: 1px solid #333;">
+          <div style="display:flex; gap:10px; align-items: flex-end;">
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+              <textarea id="adminTicketComment" placeholder="Type reply..." rows="2"
+                style="width:100%; padding:8px 12px; background:#1a1a1a; border:1px solid #333; border-radius:10px; color:#fff; font-size:0.85rem; resize:none;"></textarea>
+              <div style="display:flex; gap:8px;">
+                <select id="adminTicketStatus"
+                  style="flex:1; margin:0; background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:4px 8px; color:#aaa; font-size:0.75rem;">
+                  <option value="open">Keep Open</option>
+                  <option value="resolved">Resolve</option>
+                </select>
+                <button onclick="saveTicketReply()" class="save-btn"
+                  style="padding: 6px 15px; font-size:0.8rem; background:#22c55e; color:#000; border-radius:8px;">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsTab" class="tab-content">
+    <div class="settings-card">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">💰 COD (Cash on Delivery)</div>
+          <div class="setting-description">Allow customers to pay with cash on delivery</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="codToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">💳 Online Payment (Razorpay)</div>
+          <div class="setting-description">Allow customers to pay online via cards / UPI</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="onlineToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">📋 Order Acceptance</div>
+          <div class="setting-description">If disabled, customers cannot place orders (maintenance mode)</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="orderAcceptToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coupon Modal -->
+  <div id="couponModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="couponModalTitle">Create/Edit Coupon</span>
+        <span id="closeCouponModal" style="cursor:pointer">&times;</span>
+      </div>
+      <div id="couponModalBody">
+        <input type="text" id="couponCode" placeholder="Coupon Code (e.g., SAVE20)" required>
+        <select id="couponType">
+          <option value="percentage">Percentage (%)</option>
+          <option value="fixed">Fixed Amount (₹)</option>
+        </select>
+        <input type="number" id="couponValue" placeholder="Discount Value" step="0.01" required>
+        <input type="datetime-local" id="validFrom" required>
+        <input type="datetime-local" id="validTo" required>
+        <input type="number" id="minCartValue" placeholder="Minimum Cart Value (₹)" value="0">
+        <input type="number" id="maxDiscount" placeholder="Max Discount (for %, optional)" step="0.01">
+        <input type="number" id="usageLimit" placeholder="Total Usage Limit (optional)">
+        <input type="number" id="perUserLimit" placeholder="Per-User Limit (default 1)" value="1">
+        <label><input type="checkbox" id="isActive" checked> Active</label>
+        <button id="saveCouponBtn" class="save-btn" style="margin-top: 16px;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delivery Zone Modal -->
+  <div id="zoneModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="zoneModalTitle">Add/Edit Delivery Zone</span>
+        <span id="closeZoneModal" style="cursor:pointer">&times;</span>
+      </div>
+      <div id="zoneModalBody">
+        <input type="text" id="zonePincode" placeholder="Pincode" required>
+        <input type="text" id="zoneArea" placeholder="Area (e.g., Sector 15)" required>
+        <input type="text" id="zoneSubArea" placeholder="Sub‑Area (optional)">
+        <input type="number" id="zoneBaseCharge" placeholder="Base Delivery Charge (₹)" step="0.01" required>
+        <input type="number" id="zoneOfferCharge" placeholder="Offer Charge (₹) – leave empty for no offer" step="0.01">
+        <input type="number" id="zoneMinOrder" placeholder="Min order for offer (₹)" value="0" step="0.01">
+        <input type="text" id="zoneEstimatedTime" placeholder="Estimated Delivery Time (e.g. 30-45 mins) - optional">
+        <div style="display: flex; gap: 16px; margin: 10px 0;">
+          <label>Active From: <input type="time" id="zoneActiveFrom" value="00:00"></label>
+          <label>Active To: <input type="time" id="zoneActiveTo" value="23:59"></label>
+        </div>
+        <div>
+          <span>Available Days: </span>
+          <div class="day-check-group">
+            <label><input type="checkbox" class="dayCheck" value="1"> Mon</label>
+            <label><input type="checkbox" class="dayCheck" value="2"> Tue</label>
+            <label><input type="checkbox" class="dayCheck" value="3"> Wed</label>
+            <label><input type="checkbox" class="dayCheck" value="4"> Thu</label>
+            <label><input type="checkbox" class="dayCheck" value="5"> Fri</label>
+            <label><input type="checkbox" class="dayCheck" value="6"> Sat</label>
+            <label><input type="checkbox" class="dayCheck" value="7"> Sun</label>
+          </div>
+        </div>
+        <label><input type="checkbox" id="zoneIsActive" checked> Active</label>
+        <button id="saveZoneBtn" class="save-btn" style="margin-top: 16px;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generic Modal -->
+  <div id="genericModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header"><span id="modalTitle">Modal</span><span id="closeModal"
+          style="cursor:pointer">&times;</span></div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // 🔥 FIX 1: SUPABASE LOCK BYPASS & Standardized Client Initialization 🔥
+    const SUPABASE_URL = 'https://ciixjaljoxrziyebmfuj.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_rqQb3sXdRIBQKQ9j-BV76Q_2UeukIL3';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        storage: localStorage,
+        detectSessionInUrl: true,
+        // MAGIC FIX: Bypass navigator.locks completely
+        lock: async (name, timeout, fn) => {
+          return await fn();
+        }
+      }
+    });
+
+    let currentUser = null;
+
+    window.handleLogout = async () => {
+      await supabaseClient.auth.signOut();
+      sessionStorage.removeItem('is_admin_verified');
+      location.reload();
+    };
+
+    let isServerVerified = false;
+
+    // ========== Helper functions ==========
+    // 🔥 FIX 2: PREVENT UNNECESSARY SESSION CALLS 🔥
+    async function checkAdminAuth(providedSession = undefined) {
+      const authOverlay = document.getElementById('authOverlay');
+      const authCard = document.getElementById('authCard');
+
+      // Fast path: Check session storage
+      if (sessionStorage.getItem('is_admin_verified') === 'true') {
+        authOverlay.style.display = 'none';
+      }
+
+      let session;
+      if (providedSession !== undefined) {
+        session = providedSession;
+      } else {
+        const { data } = await supabaseClient.auth.getSession();
+        session = data.session;
+      }
+
+      if (!session) {
+        sessionStorage.removeItem('is_admin_verified');
+        authOverlay.style.display = 'flex';
+        authCard.innerHTML = `
+        <div class="auth-icon"><i class="fas fa-user-shield"></i></div>
+        <div class="auth-title">Admin Login</div>
+        <div class="auth-desc">Please login with your authorized admin account to access the control panel.</div>
+        <button class="google-login-btn" id="googleLoginBtn">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="G"> Sign in with Google
+        </button>
+      `;
+        document.getElementById('googleLoginBtn').onclick = () => {
+          supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.href }
+          });
+        };
+        return false;
+      }
+
+      currentUser = session.user;
+      
+      // 🔥 OPTIMIZATION: Skip API call if already verified in this session to save serverless usage
+      if (isServerVerified) {
+        if (sessionStorage.getItem('is_admin_verified') === 'true') {
+          authOverlay.style.display = 'none';
+        }
+        return true;
+      }
+
+      try {
+        const res = await fetch('/api/is-admin', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+        const result = await res.json();
+        if (!result.admin) {
+          isServerVerified = false;
+          sessionStorage.removeItem('is_admin_verified');
+          authOverlay.style.display = 'flex';
+          authCard.innerHTML = `
+          <div class="auth-icon" style="color: #ef4444;"><i class="fas fa-ban"></i></div>
+          <div class="auth-title">Restricted Access</div>
+          <div class="auth-desc">You are logged in as <b>${session.user.email}</b>, but you don't have admin rights.</div>
+          <button class="logout-btn" style="width: 100%;" onclick="handleLogout()">Logout & Switch Account</button>
+        `;
+          return false;
+        }
+
+        // Success
+        isServerVerified = true;
+        sessionStorage.setItem('is_admin_verified', 'true');
+        authOverlay.style.display = 'none';
+        return true;
+      } catch (err) {
+        console.error(err);
+        if (sessionStorage.getItem('is_admin_verified') !== 'true') {
+          authOverlay.style.display = 'flex';
+          authCard.innerHTML = `
+          <div class="auth-icon" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="auth-title">Authentication Failed</div>
+          <div class="auth-desc">We couldn't verify your admin status. Please check your network.</div>
+          <button class="save-btn" style="width: 100%;" onclick="location.reload()">Retry</button>
+        `;
+        }
+        return sessionStorage.getItem('is_admin_verified') === 'true';
+      }
+    }
+
+    function showToast(msg, isErr = false) {
+      const t = document.createElement('div'); t.className = 'toast';
+      t.style.background = isErr ? '#ef4444' : '#22c55e';
+      t.style.color = isErr ? 'white' : 'black';
+      t.innerText = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2500);
+    }
+
+    function openModal(title, bodyHtml, onSave) {
+      const modal = document.getElementById('genericModal');
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      modal.style.display = 'flex';
+      const closeSpan = document.getElementById('closeModal');
+      const saveBtn = document.createElement('button');
+      saveBtn.innerText = 'Save';
+      saveBtn.style.marginTop = '16px';
+      saveBtn.onclick = async () => { try { await onSave(); modal.style.display = 'none'; } catch (e) { alert(e.message); } };
+      const old = document.getElementById('modalSaveBtn'); if (old) old.remove();
+      saveBtn.id = 'modalSaveBtn';
+      document.getElementById('modalBody').appendChild(saveBtn);
+      closeSpan.onclick = () => modal.style.display = 'none';
+      window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    }
+
+    async function uploadImage(file, bucket) {
+      const ext = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${ext}`;
+      const { error } = await supabaseClient.storage.from(bucket).upload(fileName, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabaseClient.storage.from(bucket).getPublicUrl(fileName);
+      return publicUrl;
+    }
+
+    function showSkeleton(containerId, count = 3) {
+      const container = document.getElementById(containerId);
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        html += `<div class="list-item"><div class="skeleton skeleton-img" style="width:50px;height:50px;border-radius:12px;"></div><div class="skeleton skeleton-text" style="flex:1;height:40px;"></div><div class="skeleton skeleton-button" style="width:60px;height:32px;"></div></div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+    // ========== BANNERS ==========
+    async function loadBanners() {
+      showSkeleton('bannersList', 2);
+      const { data, error } = await supabaseClient.from('banners').select('*').order('display_order');
+      const container = document.getElementById('bannersList');
+      if (error) { container.innerHTML = '<p>Error loading banners</p>'; return; }
+      if (!data?.length) { container.innerHTML = '<p>No banners. Click + to add.</p>'; return; }
+      container.innerHTML = data.map(b => `
+      <div class="list-item">
+        <div class="item-info">
+          <img src="${b.image_url}">
+          <div class="item-details">
+            <strong>${escapeHtml(b.title || 'Untitled')}</strong><br>
+            ${b.link_url ? `<span>🔗 ${b.link_url}</span><br>` : '<span>No link</span><br>'}
+            Active: ${b.is_active ? '✅ Yes' : '❌ No'} | Order: ${b.display_order}
+          </div>
+        </div>
+        <div class="item-actions">
+          <button onclick="editBanner(${b.id})">Edit</button>
+          <button class="danger" onclick="deleteBanner(${b.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    }
+    window.editBanner = async (id) => {
+      const { data: b } = await supabaseClient.from('banners').select('*').eq('id', id).single();
+      openModal('Edit Banner', `
+      <input id="title" placeholder="Title" value="${escapeHtml(b.title || '')}"><div class="helper-text">Banner title (optional)</div>
+      <input id="link_url" placeholder="Link URL (optional)" value="${b.link_url || ''}"><div class="helper-text">Where the banner should link to</div>
+      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload new image (leave empty to keep current)</div>
+      <label><input type="checkbox" id="is_active" ${b.is_active ? 'checked' : ''}> Active</label>
+      <input id="display_order" type="number" placeholder="Display order" value="${b.display_order || 0}"><div class="helper-text">Lower numbers appear first</div>
+    `, async () => {
+        const title = document.getElementById('title').value;
+        const link_url = document.getElementById('link_url').value;
+        const is_active = document.getElementById('is_active').checked;
+        const display_order = parseInt(document.getElementById('display_order').value);
+        const file = document.getElementById('image').files[0];
+        let image_url = b.image_url;
+        if (file) {
+          if (image_url) await supabaseClient.storage.from('banners').remove([image_url.split('/').pop()]);
+          image_url = await uploadImage(file, 'banners');
+        }
+        await supabaseClient.from('banners').update({ title, link_url, image_url, is_active, display_order }).eq('id', id);
+        showToast('Banner updated');
+        loadBanners();
+      });
+    };
+    window.deleteBanner = async (id) => { if (confirm('Delete this banner?')) { await supabaseClient.from('banners').delete().eq('id', id); showToast('Banner deleted'); loadBanners(); } };
+    document.getElementById('addBannerFab').onclick = () => {
+      openModal('Add Banner', `
+      <input id="title" placeholder="Title" required><div class="helper-text">Banner title</div>
+      <input id="link_url" placeholder="Link URL (optional)"><div class="helper-text">Where the banner should link to</div>
+      <input type="file" id="image" accept="image/*" required><div class="helper-text">Upload banner image (recommended 1200x300)</div>
+      <label><input type="checkbox" id="is_active" checked> Active</label>
+      <input id="display_order" type="number" placeholder="Display order" value="0"><div class="helper-text">Lower numbers appear first</div>
+    `, async () => {
+        const title = document.getElementById('title').value;
+        const link_url = document.getElementById('link_url').value;
+        const is_active = document.getElementById('is_active').checked;
+        const display_order = parseInt(document.getElementById('display_order').value);
+        const file = document.getElementById('image').files[0];
+        if (!file) throw new Error('Image required');
+        const image_url = await uploadImage(file, 'banners');
+        await supabaseClient.from('banners').insert([{ title, link_url, image_url, is_active, display_order }]);
+        showToast('Banner added');
+        loadBanners();
+      });
+    };
+
+    // ========== CATEGORIES ==========
+    async function loadCategories() {
+      showSkeleton('categoriesList', 3);
+      const { data, error } = await supabaseClient.from('categories').select('*').order('display_order');
+      const container = document.getElementById('categoriesList');
+      if (error) { container.innerHTML = '<p>Error loading categories</p>'; return; }
+      if (!data?.length) { container.innerHTML = '<p>No categories. Click + to add.</p>'; return; }
+      container.innerHTML = data.map(c => `
+      <div class="list-item">
+        <div class="item-info">
+          ${c.image_url ? `<img src="${c.image_url}">` : `<div style="width:50px;height:50px;background:#2a2a2a;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-folder-open"></i></div>`}
+          <div class="item-details"><strong>${escapeHtml(c.name)}</strong><br>Order: ${c.display_order}</div>
+        </div>
+        <div class="item-actions">
+          <button onclick="editCategory(${c.id})">Edit</button>
+          <button class="danger" onclick="deleteCategory(${c.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    }
+    window.editCategory = async (id) => {
+      const { data: c } = await supabaseClient.from('categories').select('*').eq('id', id).single();
+      openModal('Edit Category', `
+      <input id="name" placeholder="Name" value="${escapeHtml(c.name)}"><div class="helper-text">Category name</div>
+      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload new image (optional)</div>
+      <input id="display_order" type="number" placeholder="Display order" value="${c.display_order || 0}"><div class="helper-text">Lower numbers appear first</div>
+    `, async () => {
+        const name = document.getElementById('name').value;
+        const display_order = parseInt(document.getElementById('display_order').value);
+        const file = document.getElementById('image').files[0];
+        let image_url = c.image_url;
+        if (file) {
+          if (image_url) await supabaseClient.storage.from('category-images').remove([image_url.split('/').pop()]);
+          image_url = await uploadImage(file, 'category-images');
+        }
+        await supabaseClient.from('categories').update({ name, image_url, display_order }).eq('id', id);
+        showToast('Category updated');
+        loadCategories();
+      });
+    };
+    window.deleteCategory = async (id) => { if (confirm('Delete this category?')) { await supabaseClient.from('categories').delete().eq('id', id); showToast('Category deleted'); loadCategories(); } };
+    document.getElementById('addCategoryFab').onclick = () => {
+      openModal('Add Category', `
+      <input id="name" placeholder="Name" required><div class="helper-text">Category name</div>
+      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload category image (optional, square recommended)</div>
+      <input id="display_order" type="number" placeholder="Display order" value="0"><div class="helper-text">Lower numbers appear first</div>
+    `, async () => {
+        const name = document.getElementById('name').value;
+        const display_order = parseInt(document.getElementById('display_order').value);
+        const file = document.getElementById('image').files[0];
+        let image_url = null;
+        if (file) image_url = await uploadImage(file, 'category-images');
+        await supabaseClient.from('categories').insert([{ name, image_url, display_order }]);
+        showToast('Category added');
+        loadCategories();
+      });
+    };
+
+    // ========== MENU ==========
+    async function loadMenu() {
+      showSkeleton('menuList', 4);
+      const { data: menuData, error: menuError } = await supabaseClient.from('menu').select('*').order('id');
+      if (menuError) { document.getElementById('menuList').innerHTML = '<p>Error loading menu</p>'; return; }
+      if (!menuData?.length) { document.getElementById('menuList').innerHTML = '<p>No menu items. Click + to add.</p>'; return; }
+      const { data: categories } = await supabaseClient.from('categories').select('id, name');
+      const categoryMap = new Map(); categories?.forEach(c => categoryMap.set(c.id, c.name));
+      const fallbackImg = 'https://placehold.co/50x50/f97316/white?text=Mr';
+      const container = document.getElementById('menuList');
+      container.innerHTML = menuData.map(m => {
+        const isVeg = m.is_veg === true;
+        const borderColor = isVeg ? '#22c55e' : '#ef4444';
+        const isActive = m.is_active !== false;
+        const specialBadge = m.is_special ? `<span style="background:#f59e0b; color:black; font-size:0.65rem; padding:2px 8px; border-radius:20px; font-weight:bold; margin-right:4px;">✨ Special</span>` : '';
+        const bestsellerBadge = m.is_bestseller ? `<span style="background:#ef4444; color:white; font-size:0.65rem; padding:2px 8px; border-radius:20px; font-weight:bold;">🔥 Bestseller</span>` : '';
+        return `
+        <div class="list-item">
+          <div class="item-info">
+            <img src="${m.image_url || fallbackImg}" style="border: 2px solid ${borderColor};">
+            <div class="item-details">
+              <strong>${escapeHtml(m.name)} ${isVeg ? '🟢' : '🔴'}</strong><br>
+              <div style="margin: 4px 0;">${specialBadge} ${bestsellerBadge}</div>
+              Category: ${escapeHtml(categoryMap.get(m.category_id) || 'None')}<br>
+              Price: ₹${m.price} ${m.offer_price && m.offer_price < m.price ? `<span style="color:#22c55e;">(Offer: ₹${m.offer_price})</span>` : ''}<br>
+            </div>
+          </div>
+          <div class="item-actions">
+            <label class="switch"><input type="checkbox" class="toggle-active" data-id="${m.id}" ${isActive ? 'checked' : ''}><span class="slider"></span></label>
+            <button onclick="editMenuItem(${m.id})">Edit</button>
+            <button class="danger" onclick="deleteMenuItem(${m.id})">Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+      document.querySelectorAll('.toggle-active').forEach(toggle => {
+        toggle.addEventListener('change', async (e) => {
+          const itemId = parseInt(toggle.dataset.id);
+          const isActive = toggle.checked;
+          const { error } = await supabaseClient.from('menu').update({ is_active: isActive }).eq('id', itemId);
+          if (error) { showToast('Failed to update status', true); toggle.checked = !isActive; }
+          else showToast(isActive ? 'Item enabled' : 'Item disabled');
+        });
+      });
+    }
+
+    window.editMenuItem = async (id) => {
+      const { data: item } = await supabaseClient.from('menu').select('*').eq('id', id).single();
+      const { data: cats } = await supabaseClient.from('categories').select('id,name');
+      const catOptions = cats.map(c => `<option value="${c.id}" ${item.category_id === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+      const isVeg = item.is_veg === true;
+      openModal('Edit Menu Item', `
+      <input id="name" placeholder="Item name" value="${escapeHtml(item.name)}" required><div class="helper-text">Name of the dish</div>
+      <select id="category_id">${catOptions}</select><div class="helper-text">Category</div>
+      <div class="veg-radio-group">
+        <label class="veg-radio"><input type="radio" name="is_veg" value="true" ${isVeg ? 'checked' : ''}> 🥬 Veg</label>
+        <label class="veg-radio nonveg"><input type="radio" name="is_veg" value="false" ${!isVeg ? 'checked' : ''}> 🥩 Non‑Veg</label>
+      </div>
+      <div style="display:flex; gap:20px; background:#2a2a2a; padding:12px; border-radius:12px; margin: 10px 0;">
+        <label style="cursor:pointer; font-weight:bold;"><input type="checkbox" id="is_special" ${item.is_special ? 'checked' : ''}> ✨ Set as Today's Special</label>
+        <label style="cursor:pointer; font-weight:bold;"><input type="checkbox" id="is_bestseller" ${item.is_bestseller ? 'checked' : ''}> 🔥 Set as Bestseller</label>
+      </div>
+      <input id="price" type="number" step="0.01" placeholder="Regular price" value="${item.price}" required><div class="helper-text">Original price (₹)</div>
+      <input id="offer_price" type="number" step="0.01" placeholder="Offer price (optional)" value="${item.offer_price || ''}"><div class="helper-text">Offer price (leave empty if no discount)</div>
+      <textarea id="description" placeholder="Description">${escapeHtml(item.description || '')}</textarea><div class="helper-text">Brief description (optional)</div>
+      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload new image (leave empty to keep current)</div>
+    `, async () => {
+        const name = document.getElementById('name').value;
+        if (!name) throw new Error('Item name is required');
+        const category_id = parseInt(document.getElementById('category_id').value);
+        const price = parseFloat(document.getElementById('price').value); if (isNaN(price)) throw new Error('Regular price is required');
+        const offer_price = parseFloat(document.getElementById('offer_price').value);
+        const finalOfferPrice = isNaN(offer_price) ? null : offer_price;
+        const description = document.getElementById('description').value;
+        const is_veg = document.querySelector('input[name="is_veg"]:checked')?.value === 'true';
+        const is_special = document.getElementById('is_special').checked;
+        const is_bestseller = document.getElementById('is_bestseller').checked;
+        const file = document.getElementById('image').files[0];
+        let image_url = item.image_url;
+        if (file) {
+          if (image_url) await supabaseClient.storage.from('product-images').remove([image_url.split('/').pop()]);
+          image_url = await uploadImage(file, 'product-images');
+        }
+        await supabaseClient.from('menu').update({
+          name, category_id, price, offer_price: finalOfferPrice, description,
+          image_url, is_veg, is_special, is_bestseller
+        }).eq('id', id);
+        showToast('Menu item updated');
+        loadMenu();
+      });
+    };
+
+    window.deleteMenuItem = async (id) => { if (confirm('Delete this menu item?')) { await supabaseClient.from('menu').delete().eq('id', id); showToast('Menu item deleted'); loadMenu(); } };
+
+    document.getElementById('addMenuItemFab').onclick = async () => {
+      const { data: cats } = await supabaseClient.from('categories').select('id,name');
+      const catOptions = cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+      openModal('Add Menu Item', `
+      <input id="name" placeholder="Item name" required><div class="helper-text">Name of the dish</div>
+      <select id="category_id">${catOptions}</select><div class="helper-text">Category</div>
+      <div class="veg-radio-group">
+        <label class="veg-radio"><input type="radio" name="is_veg" value="true" checked> 🥬 Veg</label>
+        <label class="veg-radio nonveg"><input type="radio" name="is_veg" value="false"> 🥩 Non‑Veg</label>
+      </div>
+      <div style="display:flex; gap:20px; background:#2a2a2a; padding:12px; border-radius:12px; margin: 10px 0;">
+        <label style="cursor:pointer; font-weight:bold;"><input type="checkbox" id="is_special"> ✨ Set as Today's Special</label>
+        <label style="cursor:pointer; font-weight:bold;"><input type="checkbox" id="is_bestseller"> 🔥 Set as Bestseller</label>
+      </div>
+      <input id="price" type="number" step="0.01" placeholder="Regular price" required><div class="helper-text">Original price (₹)</div>
+      <input id="offer_price" type="number" step="0.01" placeholder="Offer price (optional)"><div class="helper-text">Offer price (leave empty if no discount)</div>
+      <textarea id="description" placeholder="Description"></textarea><div class="helper-text">Brief description (optional)</div>
+      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload item image (square recommended)</div>
+    `, async () => {
+        const name = document.getElementById('name').value; if (!name) throw new Error('Item name is required');
+        const category_id = parseInt(document.getElementById('category_id').value);
+        const price = parseFloat(document.getElementById('price').value); if (isNaN(price)) throw new Error('Regular price is required');
+        const offer_price = parseFloat(document.getElementById('offer_price').value);
+        const finalOfferPrice = isNaN(offer_price) ? null : offer_price;
+        const description = document.getElementById('description').value;
+        const is_veg = document.querySelector('input[name="is_veg"]:checked')?.value === 'true';
+        const is_special = document.getElementById('is_special').checked;
+        const is_bestseller = document.getElementById('is_bestseller').checked;
+        const file = document.getElementById('image').files[0];
+        let image_url = null; if (file) image_url = await uploadImage(file, 'product-images');
+        await supabaseClient.from('menu').insert([{
+          name, category_id, price, offer_price: finalOfferPrice, description,
+          image_url, is_veg, is_active: true, is_special, is_bestseller
+        }]);
+        showToast('Menu item added');
+        loadMenu();
+      });
+    };
+
+    // ========== COUPONS ==========
+    async function loadCoupons() {
+      const { data, error } = await supabaseClient.from('discounts').select('*').order('created_at', { ascending: false });
+      if (error) { console.error(error); return; }
+      const container = document.getElementById('couponsList');
+      if (!data?.length) { container.innerHTML = '<div class="empty-state">No coupons yet</div>'; return; }
+      container.innerHTML = data.map(c => `
+      <div class="list-item">
+        <div class="item-info">
+          <div class="item-details">
+            <strong>${escapeHtml(c.code)}</strong> – ${c.discount_type === 'percentage' ? c.discount_value + '%' : '₹' + c.discount_value}
+            <br>Valid: ${new Date(c.valid_from).toLocaleDateString()} – ${new Date(c.valid_to).toLocaleDateString()}
+            ${c.usage_limit ? `<br>Usage: ${c.usage_count} / ${c.usage_limit}` : ''}
+            ${c.min_cart_value ? `<br>Min cart: ₹${c.min_cart_value}` : ''}
+            ${c.per_user_limit ? `<br>Per user: ${c.per_user_limit}` : ''}
+          </div>
+        </div>
+        <div class="item-actions">
+          <label class="switch">
+            <input type="checkbox" class="coupon-active-toggle" data-id="${c.id}" ${c.is_active ? 'checked' : ''}>
+            <span class="slider"></span>
+          </label>
+          <button onclick="editCoupon('${c.id}')">Edit</button>
+          <button class="danger" onclick="deleteCoupon('${c.id}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+      document.querySelectorAll('.coupon-active-toggle').forEach(toggle => {
+        toggle.addEventListener('change', async (e) => {
+          const couponId = toggle.dataset.id;
+          const isActive = toggle.checked;
+          const { error } = await supabaseClient.from('discounts').update({ is_active: isActive }).eq('id', couponId);
+          if (error) { showToast('Failed to update status', true); toggle.checked = !isActive; }
+          else { showToast(isActive ? 'Coupon enabled' : 'Coupon disabled'); loadCoupons(); }
+        });
+      });
+    }
+    window.deleteCoupon = async (id) => { if (confirm('Delete this coupon?')) { await supabaseClient.from('discounts').delete().eq('id', id); loadCoupons(); } };
+    window.editCoupon = async (id) => {
+      const { data: c } = await supabaseClient.from('discounts').select('*').eq('id', id).single();
+      if (!c) return;
+      document.getElementById('couponCode').value = c.code;
+      document.getElementById('couponType').value = c.discount_type;
+      document.getElementById('couponValue').value = c.discount_value;
+      document.getElementById('validFrom').value = c.valid_from.slice(0, 16);
+      document.getElementById('validTo').value = c.valid_to.slice(0, 16);
+      document.getElementById('minCartValue').value = c.min_cart_value;
+      document.getElementById('maxDiscount').value = c.max_discount || '';
+      document.getElementById('usageLimit').value = c.usage_limit || '';
+      document.getElementById('perUserLimit').value = c.per_user_limit || 1;
+      document.getElementById('isActive').checked = c.is_active;
+      document.getElementById('couponModalTitle').innerText = 'Edit Coupon';
+      document.getElementById('couponModal').style.display = 'flex';
+      window.editingCouponId = id;
+    };
+    document.getElementById('addCouponBtn').addEventListener('click', () => {
+      document.getElementById('couponCode').value = '';
+      document.getElementById('couponType').value = 'percentage';
+      document.getElementById('couponValue').value = '';
+      document.getElementById('validFrom').value = '';
+      document.getElementById('validTo').value = '';
+      document.getElementById('minCartValue').value = '0';
+      document.getElementById('maxDiscount').value = '';
+      document.getElementById('usageLimit').value = '';
+      document.getElementById('perUserLimit').value = '1';
+      document.getElementById('isActive').checked = true;
+      document.getElementById('couponModalTitle').innerText = 'Create Coupon';
+      window.editingCouponId = null;
+      document.getElementById('couponModal').style.display = 'flex';
+    });
+    document.getElementById('saveCouponBtn').addEventListener('click', async () => {
+      const data = {
+        code: document.getElementById('couponCode').value.trim().toUpperCase(),
+        discount_type: document.getElementById('couponType').value,
+        discount_value: parseFloat(document.getElementById('couponValue').value),
+        valid_from: new Date(document.getElementById('validFrom').value).toISOString(),
+        valid_to: new Date(document.getElementById('validTo').value).toISOString(),
+        min_cart_value: parseFloat(document.getElementById('minCartValue').value) || 0,
+        max_discount: document.getElementById('maxDiscount').value ? parseFloat(document.getElementById('maxDiscount').value) : null,
+        usage_limit: document.getElementById('usageLimit').value ? parseInt(document.getElementById('usageLimit').value) : null,
+        per_user_limit: parseInt(document.getElementById('perUserLimit').value) || 1,
+        is_active: document.getElementById('isActive').checked
+      };
+      if (window.editingCouponId) { await supabaseClient.from('discounts').update(data).eq('id', window.editingCouponId); }
+      else { await supabaseClient.from('discounts').insert(data); }
+      document.getElementById('couponModal').style.display = 'none';
+      loadCoupons();
+    });
+    document.getElementById('closeCouponModal').addEventListener('click', () => { document.getElementById('couponModal').style.display = 'none'; });
+
+    // ========== DELIVERY ZONES ==========
+    let editingZoneId = null;
+    let allZones = [];
+    async function loadDeliveryZones() {
+      const { data, error } = await supabaseClient.from('delivery_zones').select('*').order('pincode', { ascending: true });
+      if (error) { console.error(error); document.getElementById('deliveryZonesList').innerHTML = '<div class="empty-state">Error loading zones</div>'; return; }
+      allZones = data || [];
+      filterZones();
+    }
+    function filterZones() {
+      const filterPincode = document.getElementById('zoneFilterPincode').value.toLowerCase();
+      const filterArea = document.getElementById('zoneFilterArea').value.toLowerCase();
+      let filtered = allZones;
+      if (filterPincode) filtered = filtered.filter(z => z.pincode.toLowerCase().includes(filterPincode));
+      if (filterArea) filtered = filtered.filter(z => z.area.toLowerCase().includes(filterArea));
+      renderZoneList(filtered);
+    }
+    function renderZoneList(zones) {
+      const container = document.getElementById('deliveryZonesList');
+      if (!zones.length) { container.innerHTML = '<div class="empty-state">No delivery zones match</div>'; return; }
+      container.innerHTML = zones.map(z => `
+      <div class="list-item" data-id="${z.id}">
+        <div class="item-info">
+          <div class="item-details">
+            <strong>${escapeHtml(z.pincode)}</strong> – ${escapeHtml(z.area)}${z.sub_area ? ', ' + escapeHtml(z.sub_area) : ''}<br>
+            Base: ₹${z.base_delivery_charge} | Offer: ${z.offer_delivery_charge !== null ? (z.offer_delivery_charge === 0 ? 'Free' : '₹' + z.offer_delivery_charge) : 'None'}<br>
+            ${z.estimated_time ? `<strong>Time: ${escapeHtml(z.estimated_time)}</strong><br>` : ''}
+            Timing: ${z.active_from.slice(0, 5)} – ${z.active_to.slice(0, 5)}<br>
+            Days: ${z.active_days.split(',').map(d => ({ 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun' }[d])).join(',')}<br>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button onclick="editZone('${z.id}')">Edit</button>
+          <button class="danger" onclick="deleteZone('${z.id}')">Delete</button>
+          <label class="switch">
+            <input type="checkbox" class="zone-active-toggle" data-id="${z.id}" ${z.is_active ? 'checked' : ''}>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    `).join('');
+      document.querySelectorAll('.zone-active-toggle').forEach(toggle => {
+        toggle.addEventListener('change', async (e) => {
+          const zoneId = toggle.dataset.id;
+          const isActive = toggle.checked;
+          const { error } = await supabaseClient.from('delivery_zones').update({ is_active: isActive }).eq('id', zoneId);
+          if (error) { showToast('Failed to update status', true); toggle.checked = !isActive; }
+          else { showToast(isActive ? 'Zone enabled' : 'Zone disabled'); loadDeliveryZones(); }
+        });
+      });
+    }
+    window.editZone = async (id) => {
+      const { data: z } = await supabaseClient.from('delivery_zones').select('*').eq('id', id).single();
+      if (!z) return;
+      document.getElementById('zonePincode').value = z.pincode;
+      document.getElementById('zoneArea').value = z.area;
+      document.getElementById('zoneSubArea').value = z.sub_area || '';
+      document.getElementById('zoneBaseCharge').value = z.base_delivery_charge;
+      document.getElementById('zoneOfferCharge').value = (z.offer_delivery_charge !== null ? z.offer_delivery_charge : '');
+      document.getElementById('zoneMinOrder').value = z.min_order_for_offer;
+      document.getElementById('zoneActiveFrom').value = z.active_from.slice(0, 5);
+      document.getElementById('zoneActiveTo').value = z.active_to.slice(0, 5);
+      document.getElementById('zoneEstimatedTime').value = z.estimated_time || '';
+      const days = z.active_days.split(',').map(d => d.trim());
+      document.querySelectorAll('.dayCheck').forEach(cb => cb.checked = days.includes(cb.value));
+      document.getElementById('zoneIsActive').checked = z.is_active;
+      document.getElementById('zoneModalTitle').innerText = 'Edit Delivery Zone';
+      editingZoneId = id;
+      document.getElementById('zoneModal').style.display = 'flex';
+    };
+    window.deleteZone = async (id) => { if (confirm('Delete this delivery zone?')) { await supabaseClient.from('delivery_zones').delete().eq('id', id); loadDeliveryZones(); } };
+    document.getElementById('addZoneBtn').addEventListener('click', () => {
+      document.getElementById('zonePincode').value = '';
+      document.getElementById('zoneArea').value = '';
+      document.getElementById('zoneSubArea').value = '';
+      document.getElementById('zoneBaseCharge').value = '';
+      document.getElementById('zoneOfferCharge').value = '';
+      document.getElementById('zoneMinOrder').value = '0';
+      document.getElementById('zoneActiveFrom').value = '00:00';
+      document.getElementById('zoneActiveTo').value = '23:59';
+      document.getElementById('zoneEstimatedTime').value = '';
+      document.querySelectorAll('.dayCheck').forEach(cb => cb.checked = true);
+      document.getElementById('zoneIsActive').checked = true;
+      document.getElementById('zoneModalTitle').innerText = 'Add Delivery Zone';
+      editingZoneId = null;
+      document.getElementById('zoneModal').style.display = 'flex';
+    });
+    document.getElementById('saveZoneBtn').addEventListener('click', async () => {
+      const activeDays = Array.from(document.querySelectorAll('.dayCheck:checked')).map(cb => cb.value).join(',');
+      const data = {
+        pincode: document.getElementById('zonePincode').value.trim(),
+        area: document.getElementById('zoneArea').value.trim(),
+        sub_area: document.getElementById('zoneSubArea').value.trim() || null,
+        base_delivery_charge: parseFloat(document.getElementById('zoneBaseCharge').value),
+        offer_delivery_charge: document.getElementById('zoneOfferCharge').value === '' ? null : parseFloat(document.getElementById('zoneOfferCharge').value),
+        min_order_for_offer: parseFloat(document.getElementById('zoneMinOrder').value) || 0,
+        estimated_time: document.getElementById('zoneEstimatedTime').value.trim() || null,
+        active_from: document.getElementById('zoneActiveFrom').value,
+        active_to: document.getElementById('zoneActiveTo').value,
+        active_days: activeDays || '1,2,3,4,5,6,7',
+        is_active: document.getElementById('zoneIsActive').checked
+      };
+      if (editingZoneId) { await supabaseClient.from('delivery_zones').update(data).eq('id', editingZoneId); }
+      else { await supabaseClient.from('delivery_zones').insert(data); }
+      document.getElementById('zoneModal').style.display = 'none';
+      loadDeliveryZones();
+    });
+    document.getElementById('closeZoneModal').addEventListener('click', () => { document.getElementById('zoneModal').style.display = 'none'; });
+    document.getElementById('zoneFilterPincode').addEventListener('input', () => filterZones());
+    document.getElementById('zoneFilterArea').addEventListener('input', () => filterZones());
+
+    // ========== SUPPORT TICKETS ==========
+    let allTickets = [];
+    let currentEditingTicketId = null;
+
+    async function loadSupportTickets() {
+      const { data, error } = await supabaseClient
+        .from('support_tickets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) { console.error(error); return; }
+      allTickets = data || [];
+      renderTickets();
+    }
+
+    function renderTickets() {
+      const list = document.getElementById('adminTicketsList');
+      const filter = document.getElementById('ticketFilter').value.toLowerCase();
+      const filtered = allTickets.filter(t => t.subject.toLowerCase().includes(filter) || t.description.toLowerCase().includes(filter) || t.order_id?.toLowerCase().includes(filter));
+
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty-state">No tickets found</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(t => `
+      <div class="admin-ticket-card">
+        <div class="ticket-meta-row">
+          <span class="ticket-user"><i class="fas fa-user"></i> ${t.user_name || 'ID: ' + t.user_id.substring(0, 8)}</span>
+          <span class="ticket-source-badge ${t.source === 'whatsapp' ? 'source-wa' : 'source-app'}">
+            ${t.source === 'whatsapp' ? '<i class="fab fa-whatsapp"></i> WhatsApp' : '<i class="fas fa-mobile-alt"></i> In-App'}
+          </span>
+        </div>
+        <div class="admin-ticket-body">
+          <div class="admin-ticket-subject">${t.subject}</div>
+          <div class="admin-ticket-desc">${t.description}</div>
+          ${(t.messages && t.messages.length) ? `<div style="margin-top:8px; font-size:0.75rem; color:#666;">💬 ${t.messages.length} messages in thread</div>` : ''}
+        </div>
+        <div class="admin-ticket-footer">
+          <span class="ticket-status-badge ${t.status === 'open' ? 'status-open' : 'status-resolved'}">${t.status}</span>
+          <button onclick="openTicketReply('${t.id}')">${t.status === 'resolved' ? 'View Thread' : 'Reply / Action'}</button>
+          <span style="font-size:0.7rem; color:#555; margin-left:auto;">${new Date(t.created_at).toLocaleString()}</span>
+        </div>
+      </div>
+    `).join('');
+    }
+
+    window.openTicketReply = (id) => {
+      const ticket = allTickets.find(t => t.id === id);
+      if (!ticket) return;
+      currentEditingTicketId = id;
+
+      // Set Top Info & Header
+      document.getElementById('ticketHeaderInfo').innerHTML = `<i class="fas fa-user"></i> ${ticket.user_name || 'Customer'}`;
+      document.getElementById('ticketTopInfo').innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span>
+          <b>Order:</b> <span style="cursor:pointer; color:#22c55e;" onclick="copyOrderId('${ticket.order_id}')" title="Click to copy">${ticket.order_id || 'N/A'} <i class="far fa-copy" style="font-size:0.7rem;"></i></span> 
+          | <b>Sub:</b> ${ticket.subject}
+        </span>
+        <span style="opacity:0.6;">${new Date(ticket.created_at).toLocaleDateString()}</span>
+      </div>
+    `;
+
+      // Render Chat
+      const chatContainer = document.getElementById('adminChatThread');
+      chatContainer.innerHTML = (ticket.messages || []).map(m => `
+      <div style="padding:12px; border-radius:16px; font-size:0.9rem; ${m.role === 'admin' ? 'background:rgba(34,197,94,0.1); border-left:4px solid #22c55e; margin-left:15%;' : 'background:rgba(255,255,255,0.05); margin-right:15%;'}">
+        <b style="font-size:0.65rem; display:block; opacity:0.6; margin-bottom:4px;">${m.role === 'admin' ? 'YOU (ADMIN)' : 'CUSTOMER'}</b>
+        ${m.text}
+        <div style="font-size:0.6rem; opacity:0.4; margin-top:6px; text-align:right;">${new Date(m.time).toLocaleString()}</div>
+      </div>
+    `).join('') || '<div style="text-align:center; padding:20px; color:#555; font-size:0.8rem;">No messages yet. Send a reply to start the conversation.</div>';
+
+      // Handle Order Details
+      const orderDetails = document.getElementById('adminOrderDetails');
+      orderDetails.style.display = 'none';
+      if (ticket.order_id) fetchOrderForTicket(ticket.order_id);
+
+      // Setup Reply Section (Ultra Compact)
+      const replySection = document.getElementById('adminReplySection');
+      if (ticket.status === 'resolved') {
+        replySection.innerHTML = '<div style="text-align:center; color:#666; font-size:0.75rem; padding:5px;">Ticket Closed.</div>';
+      } else {
+        replySection.innerHTML = `
+        <div style="display:flex; gap:10px; align-items: flex-end;">
+          <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+            <textarea id="adminTicketComment" placeholder="Type reply..." rows="2" style="width:100%; padding:8px 12px; background:#1a1a1a; border:1px solid #333; border-radius:10px; color:#fff; font-size:0.85rem; resize:none;"></textarea>
+            <div style="display:flex; gap:8px;">
+              <select id="adminTicketStatus" style="flex:1; margin:0; background:#1a1a1a; border:1px solid #333; border-radius:8px; padding:4px 8px; color:#aaa; font-size:0.75rem;">
+                <option value="open">Keep Open</option>
+                <option value="resolved">Mark Resolved</option>
+              </select>
+              <button onclick="saveTicketReply()" class="save-btn" style="padding: 6px 15px; font-size:0.8rem; background:#22c55e; color:#000; border-radius:8px; font-weight:bold; cursor:pointer;">Send</button>
+            </div>
+          </div>
+        </div>
+      `;
+      }
+
+      document.getElementById('ticketReplyModal').style.display = 'flex';
+      setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 100);
+    };
+
+    window.closeTicketModal = () => { document.getElementById('ticketReplyModal').style.display = 'none'; };
+
+    window.saveTicketReply = async () => {
+      if (!currentEditingTicketId) return;
+      const ticket = allTickets.find(t => t.id === currentEditingTicketId);
+      const comment = document.getElementById('adminTicketComment').value.trim();
+      const status = document.getElementById('adminTicketStatus').value;
+
+      let newMessages = [...(ticket.messages || [])];
+      if (comment) {
+        newMessages.push({ role: 'admin', text: comment, time: new Date().toISOString() });
+      }
+
+      const { error } = await supabaseClient
+        .from('support_tickets')
+        .update({
+          messages: newMessages,
+          status: status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentEditingTicketId);
+
+      if (error) showToast('Failed to update ticket', true);
+      else {
+        showToast('Ticket updated');
+        closeTicketModal();
+        loadSupportTickets();
+      }
+    };
+
+    async function fetchOrderForTicket(orderId) {
+      const container = document.getElementById('adminOrderDetails');
+      container.style.display = 'block';
+
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .eq('order_id', orderId)
+        .single();
+
+      if (error || !data) {
+        container.innerHTML = '<div style="color:#ef4444;">Could not find order details for ID: ' + orderId + '</div>';
+        return;
+      }
+
+      const items = typeof data.cart_items === 'string' ? JSON.parse(data.cart_items) : data.cart_items;
+      let itemsHtml = items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+
+      container.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+        <b style="color:#f39c12;">ORDER DETAILS </b>
+        <span style="font-size:0.7rem; background:#444; padding:2px 6px; border-radius:4px;">${data.order_status}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><b>Items:</b> ${itemsHtml}</div>
+        <button onclick="copyOrderId('${data.order_id}')" style="background:rgba(255,255,255,0.1); border:none; color:#fff; padding:4px 8px; border-radius:6px; font-size:0.6rem; cursor:pointer;"><i class="far fa-copy"></i> Copy ID</button>
+      </div>
+      <div><b>Total:</b> ₹${data.total_amount} | <b>Phone:</b> ${data.customer_phone || 'N/A'}</div>
+    `;
+    }
+
+    window.copyOrderId = (id) => {
+      if (!id || id === 'N/A') return;
+      navigator.clipboard.writeText(id).then(() => {
+        showToast('Order ID Copied: ' + id);
+      }).catch(err => {
+        console.error('Could not copy text: ', err);
+      });
+    };
+
+    document.getElementById('ticketFilter').addEventListener('input', renderTickets);
+
+    // ========== SETTINGS ==========
+    async function loadSettings() {
+      const { data, error } = await supabaseClient.from('app_settings').select('key, value');
+      if (error) { console.error(error); return; }
+      const settings = {}; data?.forEach(s => settings[s.key] = s.value);
+      const codToggle = document.getElementById('codToggle');
+      const onlineToggle = document.getElementById('onlineToggle');
+      const orderAcceptToggle = document.getElementById('orderAcceptToggle');
+      if (codToggle) codToggle.checked = settings.cod_enabled === true;
+      if (onlineToggle) onlineToggle.checked = settings.online_enabled === true;
+      if (orderAcceptToggle) orderAcceptToggle.checked = settings.order_acceptance_enabled === true;
+    }
+    async function updateSetting(key, value) {
+      const { error } = await supabaseClient.from('app_settings').upsert({ key, value }, { onConflict: 'key' });
+      if (error) showToast('Failed to save setting', true);
+      else showToast('Setting updated');
+    }
+    document.getElementById('codToggle')?.addEventListener('change', (e) => updateSetting('cod_enabled', e.target.checked));
+    document.getElementById('onlineToggle')?.addEventListener('change', (e) => updateSetting('online_enabled', e.target.checked));
+    document.getElementById('orderAcceptToggle')?.addEventListener('change', (e) => updateSetting('order_acceptance_enabled', e.target.checked));
+
+    // ========== TAB SWITCH ==========
+    function switchTab(tab) {
+      const tabContent = document.getElementById(`${tab}Tab`);
+      if (!tabContent) { console.warn(`Tab ${tab}Tab not found`); return; }
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      tabContent.classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+      if (btn) btn.classList.add('active');
+      if (tab === 'banners') loadBanners();
+      else if (tab === 'categories') loadCategories();
+      else if (tab === 'menu') loadMenu();
+      else if (tab === 'coupons') loadCoupons();
+      else if (tab === 'deliveryzones') loadDeliveryZones();
+      else if (tab === 'support') loadSupportTickets();
+      else if (tab === 'settings') loadSettings();
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+    document.getElementById('adminLogoutBtn').addEventListener('click', async () => { await supabaseClient.auth.signOut(); location.reload(); });
+    document.getElementById('restaurantOrdersBtn').addEventListener('click', () => { window.location.href = '/restaurant-orders.html'; });
+
+    // ========== INIT & AUTH EVENT LISTENERS ==========
+    let isInitializing = false;
+    async function init(providedSession = undefined) {
+      if (isInitializing) return;
+      isInitializing = true;
+      try {
+        const ok = await checkAdminAuth(providedSession);
+        if (ok) {
+          const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab || 'banners';
+          switchTab(activeTab);
+        }
+      } finally {
+        isInitializing = false;
+      }
+    }
+
+    // 🔥 FIX 3: PASS SESSION ON AUTH CHANGE 🔥
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      init(session);
+    });
+
+    // 🔥 FIX 4: SAFE TAB REFRESH ON VISIBILITY CHANGE 🔥
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        console.log('Tab visible: safely refreshing admin data...');
+        if (currentUser) {
+          const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+          if (activeTab === 'banners') loadBanners();
+          else if (activeTab === 'categories') loadCategories();
+          else if (activeTab === 'menu') loadMenu();
+          else if (activeTab === 'coupons') loadCoupons();
+          else if (activeTab === 'deliveryzones') loadDeliveryZones();
+          else if (activeTab === 'support') loadSupportTickets();
+          else if (activeTab === 'settings') loadSettings();
+        }
+      }
+    });
+
+  </script>
+</body>
+
+</html>

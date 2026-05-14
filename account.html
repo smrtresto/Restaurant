@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>Mr Chef · My Account</title>
+  <meta name="theme-color" content="#000000">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+     /* Mobile tap highlight fix */
+* {
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Outfit', sans-serif;
+}
+
+button {
+  outline: none;
+}
+
+button:focus,
+button:active {
+  outline: none;
+  box-shadow: none;
+}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      padding-bottom: 80px;
+    }
+    .app-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 110; gap: 12px;
+    }
+    .logo img { height: 32px; width: auto; border-radius: 8px; }
+    .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+    .brand-info { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .brand-title { font-size: 1.1rem; font-weight: 900; color: #22c55e; letter-spacing: -0.5px; line-height: 1; margin-bottom: 2px; }
+    .location-name { font-size: 0.75rem; color: #aaa; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+    .location-name i { font-size: 0.65rem; color: #22c55e; }
+    .login-btn, .logout-btn {
+      background-color: #22c55e; color: #000; border: none;
+      padding: 6px 14px; border-radius: 30px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
+      transition: 0.2s;
+    }
+    .login-btn:active, .logout-btn:active { transform: scale(0.95); }
+    .logout-btn { background-color: #ef4444; color: white; }
+
+    /* --- PREMIUM AVATAR & POPOVER --- */
+    .user-profile-wrapper { position: relative; }
+    .user-avatar-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(34, 197, 94, 0.1); border: 1.5px solid rgba(34, 197, 94, 0.3);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .user-avatar-btn:active { transform: scale(0.92); }
+    .user-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+    .user-avatar-btn i { color: #22c55e; font-size: 1.1rem; }
+    
+    .profile-popover {
+      position: absolute; top: calc(100% + 12px); right: 0;
+      width: 260px; background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px; padding: 24px; z-index: 1000;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+      display: none; transform-origin: top right; animation: popoverIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .profile-popover.show { display: block; }
+    @keyframes popoverIn {
+      from { opacity: 0; transform: scale(0.9) translateY(-15px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .popover-user-info { text-align: center; margin-bottom: 20px; }
+    .popover-avatar {
+      width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a);
+      margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 800; color: #000; border: 3px solid rgba(34, 197, 94, 0.3);
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.2);
+    }
+    .popover-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .popover-name { font-weight: 800; font-size: 1.15rem; color: #fff; margin-bottom: 4px; letter-spacing: -0.2px; }
+    .popover-email { font-size: 0.8rem; color: #888; margin-bottom: 4px; word-break: break-all; font-weight: 500; }
+    .popover-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 16px 0; }
+    .popover-btn {
+      width: 100%; padding: 14px; border-radius: 40px; border: none;
+      font-weight: 800; cursor: pointer; transition: 0.2s; display: flex;
+      align-items: center; justify-content: center; gap: 10px; font-size: 0.95rem;
+    }
+    .login-google-btn { 
+      background: #ffffff; color: #3c4043; 
+      border: 1px solid #dadce0; border-radius: 40px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+      font-weight: 600; font-family: inherit;
+    }
+    .login-google-btn:active { background: #f8f9fa; transform: scale(0.98); box-shadow: none; }
+    .login-google-btn img { width: 18px; height: 18px; flex-shrink: 0; }
+    .logout-popover-btn { background: rgba(239, 68, 68, 0.08); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .logout-popover-btn:hover { background: #ef4444; color: #fff; }
+    .my-orders-popover-btn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
+    .my-orders-popover-btn:hover { background: rgba(255,255,255,0.1); }
+    .main-content { padding: 16px 12px; max-width: 800px; margin: 0 auto; }
+    .tabs-wrapper {
+      overflow-x: auto;
+      white-space: nowrap;
+      margin-bottom: 24px;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .tabs-wrapper::-webkit-scrollbar { display: none; }
+    .tabs {
+      display: inline-flex;
+      gap: 12px;
+      background: rgba(30,30,30,0.5);
+      backdrop-filter: blur(12px);
+      padding: 6px;
+      border-radius: 60px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #aaa;
+      padding: 8px 24px;
+      border-radius: 60px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .tab-btn.active {
+      background: rgba(34,197,94,0.15);
+      color: #22c55e;
+      box-shadow: inset 0 0 0 1px rgba(34,197,94,0.3);
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 28px 0 16px 0;
+      padding-left: 12px;
+      border-left: 4px solid #22c55e;
+      color: #fff;
+    }
+    .order-card {
+      background: rgba(20,20,20,0.8);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: 0.3s ease;
+      overflow: hidden;
+    }
+    .order-card:hover { border-color: rgba(34,197,94,0.3); box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+    .order-header {
+      padding: 18px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .order-id { font-weight: 800; font-size: 1.05rem; color: #fff; letter-spacing: 0.5px; }
+    .order-date { font-size: 0.75rem; color: #888; margin-top: 4px; }
+    .order-header-right { display: flex; align-items: center; gap: 12px; }
+    .payment-badge {
+      padding: 4px 10px;
+      border-radius: 60px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .payment-online { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .payment-cod { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+    .order-total { font-weight: 800; font-size: 1.1rem; color: #22c55e; }
+    .expand-icon { font-size: 1rem; transition: transform 0.3s ease; color: #666; }
+    .order-card.open .expand-icon { transform: rotate(180deg); color: #fff; }
+    .timeline-wrapper {
+      position: relative;
+      padding: 24px 0 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+      border-top: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .live-timer-container {
+      background: rgba(34, 197, 94, 0.1);
+      border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+      padding: 12px 16px;
+      color: #22c55e;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .live-timer-container.late {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+    .timeline-steps { display: flex; justify-content: space-between; position: relative; z-index: 2; }
+    .timeline-step { flex: 1; text-align: center; position: relative; }
+    .step-icon {
+      width: 40px; height: 40px;
+      background: #111;
+      border: 2px solid #333;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 1rem;
+      color: #555;
+      transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+      z-index: 3;
+    }
+    .step-label { font-size: 0.65rem; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.3s; }
+    .step-time { font-size: 0.65rem; color: #444; margin-top: 4px; font-family: monospace; letter-spacing: -0.5px; }
+    .timeline-progress-bar {
+      position: absolute;
+      top: 44px;
+      transform: translateY(-50%);
+      left: 10%;
+      width: 80%;
+      height: 3px;
+      background: #333;
+      border-radius: 10px;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .timeline-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #16a34a, #22c55e, #4ade80);
+      box-shadow: 0 0 10px rgba(34,197,94,0.6);
+      transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .timeline-step.completed .step-icon { background: #22c55e; border-color: #22c55e; color: #000; box-shadow: 0 0 15px rgba(34,197,94,0.3); }
+    .timeline-step.completed .step-label { color: #aaa; }
+    .timeline-step.completed .step-time { color: #888; }
+    .timeline-step.active .step-icon { background: #000; border-color: #22c55e; color: #22c55e; animation: neonPulse 2s infinite; }
+    .timeline-step.active .step-label { color: #22c55e; font-weight: 800; }
+    .timeline-step.active .step-time { color: #22c55e; font-weight: bold; }
+    @keyframes neonPulse {
+      0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4), inset 0 0 0 rgba(34,197,94,0); }
+      70% { box-shadow: 0 0 0 12px rgba(34,197,94,0), inset 0 0 8px rgba(34,197,94,0.4); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0), inset 0 0 0 rgba(34,197,94,0); }
+    }
+    .cancelled-timeline { text-align: center; padding: 20px; }
+    .cancelled-badge { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 6px 18px; border-radius: 50px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
+    .order-details { padding: 0 16px 20px 16px; display: none; }
+    .order-card.open .order-details { display: block; animation: fadeSlideDown 0.3s ease forwards; }
+    @keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .items-list { margin: 16px 0; }
+    .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); }
+    .item-img-container { width: 48px; height: 48px; border-radius: 12px; background: rgba(34,197,94,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; flex-shrink: 0; }
+    .item-img-mini { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2; }
+    .item-fallback-text { font-weight: 900; color: #22c55e; font-size: 1.2rem; z-index: 1; text-transform: uppercase; text-shadow: 0 0 10px rgba(34,197,94,0.3); }
+
+    /* Veg Indicator Badge on Mini Image */
+    .item-img-container .veg-indicator {
+      position: absolute;
+      top: 4px; right: 4px;
+      z-index: 5;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 2.5px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .veg-indicator {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 1.5px solid;
+      border-radius: 3px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .veg-indicator::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+    .veg-indicator.veg { border-color: #22c55e; }
+    .veg-indicator.veg::after { background: #22c55e; }
+    .veg-indicator.non-veg { border-color: #ef4444; }
+    .veg-indicator.non-veg::after { background: #ef4444; }
+    .item-details-mini { flex: 1; }
+    .item-name-mini { font-weight: 700; color: #fff; font-size: 0.9rem; margin-bottom: 2px; }
+    .item-meta-mini { font-size: 0.75rem; color: #888; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .item-original-price { text-decoration: line-through; color: #555; font-size: 0.7rem; }
+    .item-price { font-weight: 800; color: #fff; font-size: 0.95rem; text-align: right; }
+    .delivery-info {
+      background: rgba(0,0,0,0.4);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.8rem;
+      border: 1px solid rgba(255,255,255,0.03);
+      color: #aaa;
+    }
+    .delivery-info div { display: flex; align-items: flex-start; gap: 10px; }
+    .delivery-info i { margin-top: 2px; color: #22c55e; width: 14px; text-align: center; }
+    .see-more-btn {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #22c55e;
+      padding: 10px 24px;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: block;
+      width: fit-content;
+      margin: 16px auto 24px;
+      transition: 0.2s;
+    }
+    .see-more-btn:hover { background: #22c55e; color: black; }
+    .address-card {
+      background: rgba(20,20,20,0.8);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+      transition: 0.2s;
+    }
+    .address-default-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(34,197,94,0.15);
+      color: #22c55e;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: bold;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .address-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .address-phone { font-size: 0.8rem; color: #aaa; margin-bottom: 12px; font-family: monospace; }
+    .address-text { font-size: 0.85rem; color: #ccc; line-height: 1.5; }
+    .address-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed rgba(255,255,255,0.08);
+    }
+    .address-actions button { background: none; border: none; color: #888; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+    .address-actions button:hover { color: #fff; }
+    .address-actions button.edit-btn:hover { color: #3b82f6; }
+    .address-actions button.danger:hover { color: #ef4444; }
+    .address-actions button.star-btn:hover { color: #eab308; }
+    .add-address-btn {
+      background: #22c55e;
+      color: black;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 60px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      transition: 0.2s;
+      box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+    }
+    .add-address-btn:active { transform: scale(0.97); }
+    .empty-state { text-align: center; padding: 60px 20px; color: #666; }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; color: #333; }
+    .empty-state p { font-size: 0.9rem; margin-bottom: 16px; }
+   /* ========== BOTTOM NAVIGATION (UNIFIED) ========== */
+.bottom-nav {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  max-width: 320px;
+  background: rgba(20, 20, 20, 0.9);
+  backdrop-filter: blur(16px);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 100;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 30px;
+  transition: 0.2s;
+  position: relative;
+  font-family: inherit;
+}
+
+.nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.nav-item.active {
+  background: transparent;
+  color: #22c55e;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: bold;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* Mobile specific adjustment */
+@media (max-width: 500px) {
+  .bottom-nav {
+    padding: 6px 12px;
+    gap: 6px;
+    max-width: 280px;
+  }
+  .nav-item {
+    padding: 4px 8px;
+    font-size: 0.6rem;
+  }
+  .nav-item i {
+    font-size: 1.1rem;
+  }
+}
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(8px);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #111;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      padding: 24px;
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+    .modal-header { font-size: 1.2rem; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: 700; }
+    .modal-body input, .modal-body textarea, .modal-body select {
+      width: 100%;
+      padding: 14px 16px;
+      margin: 6px 0;
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 12px;
+      color: white;
+      font-size: 0.9rem;
+    }
+    .modal-body input:focus, .modal-body textarea:focus, .modal-body select:focus { outline: none; border-color: #22c55e; }
+    .modal-footer { display: flex; gap: 12px; margin-top: 24px; }
+    .modal-footer button { flex: 1; padding: 14px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; }
+    .save-btn { background: #22c55e; color: black; }
+    .cancel-btn { background: #222; color: white; }
+
+    /* Support Styles */
+    .support-card {
+      background: rgba(20,20,20,0.8);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(34,197,94,0.15);
+      text-align: center;
+    }
+    .support-card i { font-size: 2.5rem; color: #22c55e; margin-bottom: 16px; opacity: 0.8; }
+    .support-card h3 { font-size: 1.2rem; margin-bottom: 8px; font-weight: 800; }
+    .support-card p { font-size: 0.9rem; color: #aaa; margin-bottom: 20px; line-height: 1.5; }
+    
+    .support-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+    .support-btn {
+      padding: 15px 10px; border-radius: 20px; border: none; font-weight: 900; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;
+      transition: 0.2s; color: #fff !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    .support-btn .btn-icon {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: #fff !important; margin: 0; padding: 0;
+    }
+    .support-btn i { color: #fff !important; margin: 0 !important; }
+    .support-btn-whatsapp { background: #25D366 !important; }
+    .support-btn-ticket { background: #3b82f6 !important; }
+    .support-btn:active { transform: scale(0.96); }
+
+    .ticket-card {
+      background: rgba(20,20,20,0.5);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .ticket-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .ticket-subject { font-weight: 700; font-size: 0.95rem; color: #fff; }
+    .ticket-status { font-size: 0.65rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+    .status-open { background: linear-gradient(90deg, #22c55e, #10b981); color: #000; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+    .status-resolved { background: rgba(255, 255, 255, 0.1); color: #888; border: 1px solid rgba(255, 255, 255, 0.1); }
+    
+    .category-tag { font-size: 0.6rem; padding: 3px 10px; border-radius: 30px; margin-right: 5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tag-payment { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .tag-food { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .tag-status { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .tag-other { background: rgba(156, 163, 175, 0.15); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.3); }
+
+    .ticket-card {
+      background: linear-gradient(145deg, #1a1a1a, #111);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative; overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .ticket-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+      background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+    }
+    .ticket-desc { font-size: 0.8rem; color: #888; line-height: 1.5; margin-bottom: 12px; }
+    .ticket-footer { font-size: 0.7rem; color: #555; display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
+    .admin-reply {
+      margin-top: 10px; padding: 10px; background: rgba(34,197,94,0.05); border-radius: 10px;
+      border-left: 3px solid #22c55e; font-size: 0.8rem; color: #ccc;
+    }
+    .admin-reply b { color: #22c55e; font-size: 0.7rem; display: block; margin-bottom: 4px; }
+
+    .select-error { border-color: #ef4444 !important; color: #ef4444 !important; }
+
+    /* Toast & Loading Styles */
+    .toast-message {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: rgba(34, 197, 94, 0.95); backdrop-filter: blur(8px);
+      color: black; padding: 10px 24px; border-radius: 40px;
+      font-weight: bold; font-size: 0.9rem; z-index: 3000;
+      animation: fadeUpOut 2s ease forwards; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    @keyframes fadeUpOut {
+      0% { opacity: 0; transform: translate(-50%, 20px); }
+      15% { opacity: 1; transform: translate(-50%, 0); }
+      85% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -20px); }
+    }
+    .loading-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 4000; flex-direction: column; gap: 20px;
+      font-weight: bold; color: #22c55e;
+    }
+    .spinner {
+      width: 46px; height: 46px; border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #22c55e; border-radius: 50%; animation: spin 1s linear infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <div class="header-left">
+      <div class="logo"><img src="/logo.png" alt="Mr Chef" onerror="this.style.display='none'"></div>
+      <div class="brand-info">
+        <div class="brand-title">MR CHEF</div>
+        <div class="location-name">
+          <i class="fas fa-location-arrow"></i> <span id="userLocation">Detecting...</span>
+        </div>
+      </div>
+    </div>
+    <div class="user-profile-wrapper">
+      <div id="authButton"></div>
+      <div id="profilePopover" class="profile-popover">
+        <!-- Popover content injected by JS -->
+      </div>
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="tabs-wrapper"><div class="tabs"><button class="tab-btn active" id="tabOrders">📦 Orders</button><button class="tab-btn" id="tabAddresses">📍 Addresses</button><button class="tab-btn" id="tabSupport">🎧 Support</button></div></div>
+    <div id="ordersSection"><div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading your orders...</p></div></div>
+    <div id="addressesSection" style="display:none;"><button id="addAddressBtn" class="add-address-btn"><i class="fas fa-plus"></i> Add new address</button><div id="addressesList"></div></div>
+    <div id="supportSection" style="display:none;">
+      <div class="support-card">
+        <i class="fas fa-headset"></i>
+        <h3>Need Help?</h3>
+        <p>Experiencing an issue with your order? Our hybrid support ensures you get help the way you want.</p>
+        <div class="support-actions">
+          <button class="support-btn support-btn-whatsapp" id="btnSupportWa">
+            <span class="btn-icon"><i class="fab fa-whatsapp"></i></span> WhatsApp
+          </button>
+          <button class="support-btn support-btn-ticket" id="btnSupportTicket">
+            <span class="btn-icon">🎟️</span> Raise Ticket
+          </button>
+        </div>
+      </div>
+      <div class="section-title">Ticket History</div>
+      <div id="ticketsList"></div>
+    </div>
+  </div>
+  <div class="bottom-nav"><button class="nav-item" id="navHome"><i class="fas fa-home"></i><span>Home</span></button><button class="nav-item" id="navMenu"><i class="fas fa-utensils"></i><span>Menu</span></button><button class="nav-item" id="navCart"><i class="fas fa-shopping-cart"></i><span>Cart</span></button><button class="nav-item active" id="navAccount"><i class="fas fa-user"></i><span>Account</span></button></div>
+  <div id="addressModal" class="modal"><div class="modal-content"><div class="modal-header"><span id="modalTitle">Add Address</span><span id="closeModal" style="cursor:pointer; color:#666;">&times;</span></div><div class="modal-body"><div style="display:flex; gap:8px; margin:6px 0;"><input type="text" id="addrPincode" placeholder="Pincode" style="flex:1; margin:0;"><button id="detectPincodeBtn" style="background:#22c55e; color:black; border:none; padding:0 15px; border-radius:12px; cursor:pointer;" title="Detect Pincode"><i class="fas fa-location-arrow"></i></button></div><input type="text" id="addrName" placeholder="Full name"><input type="tel" id="addrPhone" placeholder="Phone number"><select id="addrArea"><option value="">Enter pincode first</option></select><select id="addrSubArea" style="display:none;"><option value="">Select Sub‑Area</option></select><textarea id="addrAddress" rows="3" placeholder="Street / Colony / Area"></textarea><input type="text" id="addrLandmark" placeholder="Landmark (Optional)"><label style="display:flex; align-items:center; gap:10px; margin-top:16px; font-size:0.9rem; color:#aaa; cursor:pointer;"><input type="checkbox" id="addrDefault" style="width:auto; transform:scale(1.2);"> <span>Set as default address</span></label></div><div class="modal-footer"><button class="cancel-btn" id="cancelAddressBtn">Cancel</button><button class="save-btn" id="saveAddressBtn">Save</button></div></div></div>
+
+  <!-- Support Ticket Modal -->
+  <div id="supportModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span id="supportModalTitle">Raise a Ticket</span>
+        <span id="closeSupportModal" style="cursor:pointer; opacity:0.5;">&times;</span>
+      </div>
+      <div class="modal-body">
+        <select id="supportOrder">
+          <option value="">Select Order (Optional)</option>
+        </select>
+        <select id="supportSubject">
+          <option value="">Select Issue Type</option>
+          <option value="Payment Issue">Payment Issue</option>
+          <option value="Order Status">Order Status/Delay</option>
+          <option value="Food Quality">Food Quality/Missing Items</option>
+          <option value="Refund">Refund Request</option>
+          <option value="Other">Other</option>
+        </select>
+        <textarea id="supportMessage" placeholder="Explain your issue here..." rows="4"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="supportSubmitBtn" class="save-btn">Submit Request</button>
+      </div>
+    </div>
+  </div>
+  <!-- Ticket Chat Modal -->
+  <div id="ticketChatModal" class="modal">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <span id="chatModalTitle">Ticket Chat</span>
+        <span onclick="closeTicketChat()" style="cursor:pointer; opacity:0.5;">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="chatModalDetails" style="font-size:0.8rem; color:#aaa; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #333;"></div>
+        <div id="chatModalMessages" style="display:flex; flex-direction:column; gap:10px; max-height:350px; overflow-y:auto; padding-right:8px; scrollbar-width:thin;">
+          <!-- Messages injected here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="chatModalFooter" style="flex-direction:column; gap:10px;">
+        <!-- Reply box injected here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // 🔥 FIX 1: SUPABASE LOCK BYPASS 🔥
+      const SUPABASE_URL = 'https://ciixjaljoxrziyebmfuj.supabase.co';
+      const SUPABASE_ANON_KEY = 'sb_publishable_rqQb3sXdRIBQKQ9j-BV76Q_2UeukIL3';
+      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { 
+        auth: { 
+          persistSession: true, 
+          storage: localStorage, 
+          detectSessionInUrl: true,
+          // MAGIC FIX: Bypass navigator.locks completely
+          lock: async (name, timeout, fn) => {
+            return await fn();
+          }
+        } 
+      });
+      
+      let currentUser = null, editingAddressId = null, allOrders =[], completedOrdersLimit = 3, showAllCompleted = false, menuMap = {}, loadingOverlay = null;
+      
+      async function fetchMenuMap(){ const { data, error } = await supabaseClient.from('menu').select('id, image_url, price, is_veg'); if(!error && data) data.forEach(item=>menuMap[item.id]={image:item.image_url, price:item.price, is_veg:item.is_veg}); }
+      function escapeHtml(str){ return str?.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) || ''; }
+      function formatDate(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+      }
+      function parseCartItems(order){ if(!order.cart_items) return[]; if(typeof order.cart_items==='string'){ try{ return JSON.parse(order.cart_items); }catch(e){ return[]; } } return order.cart_items; }
+      
+      const statusSteps=['received','preparing','ready','out_for_delivery','delivered'];
+      const statusIcons={received:'<i class="fas fa-clipboard-list"></i>',preparing:'<i class="fas fa-fire"></i>',ready:'<i class="fas fa-box-open"></i>',out_for_delivery:'<i class="fas fa-motorcycle"></i>',delivered:'<i class="fas fa-home"></i>'};
+      const statusLabels={received:'Received',preparing:'Cooking',ready:'Packed',out_for_delivery:'On Way',delivered:'Delivered'};
+      
+      function formatShortTime(iso) {
+        if (!iso) return '--:--';
+        return new Date(iso).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+      }
+      
+      function getEstimatedMinutes(estStr) {
+        if (!estStr) return 45;
+        const matches = estStr.toString().match(/\d+/g);
+        if (matches && matches.length > 0) {
+          return Math.max(...matches.map(Number));
+        }
+        return 45;
+      }
+
+      function renderTimeline(order){ 
+        if(order.order_status==='cancelled') return `<div class="cancelled-timeline"><span class="cancelled-badge"><i class="fas fa-times-circle"></i> Order Cancelled</span></div>`; 
+        const currentIdx=statusSteps.indexOf(order.order_status); 
+        let stepsHtml=''; 
+        statusSteps.forEach((step,i)=>{ 
+          let cls=''; 
+          if(i<currentIdx) cls='completed'; else if(i===currentIdx) cls='active'; 
+          stepsHtml+=`<div class="timeline-step ${cls}"><div class="step-icon">${statusIcons[step]}</div><div class="step-label">${statusLabels[step]}</div><div class="step-time">${formatShortTime(order.status_log?.[step])}</div></div>`; 
+        }); 
+        const isDelivered = order.order_status === 'delivered';
+        const timerHtml = !isDelivered ? `<div id="live-timer-${order.id}" class="live-timer-container"><i class="fas fa-clock"></i> <span>Calculating time...</span></div>` : '';
+        return `${timerHtml}<div class="timeline-wrapper"><div class="timeline-progress-bar"><div class="timeline-progress-fill" id="fill-${order.id}"></div></div><div class="timeline-steps">${stepsHtml}</div></div>`; 
+      }
+      
+      function animateTimeline(order){ 
+        const isDelivered = order.order_status === 'delivered';
+        const currentIdx = statusSteps.indexOf(order.order_status); 
+        let progress = 0;
+        
+        if (isDelivered) {
+          progress = 100;
+        } else {
+          const estMinutes = getEstimatedMinutes(order.status_log?.estimated_time);
+          const startTime = new Date(order.created_at).getTime();
+          const endTime = startTime + (estMinutes * 60 * 1000);
+          const now = Date.now();
+          
+          if (now >= endTime) {
+            progress = 95;
+          } else if (now <= startTime) {
+            progress = 0;
+          } else {
+            progress = ((now - startTime) / (endTime - startTime)) * 100;
+          }
+          const stepProgress = (currentIdx / (statusSteps.length - 1)) * 100;
+          if (progress < stepProgress) progress = stepProgress;
+        }
+        
+        setTimeout(()=>{ const fillEl=document.getElementById(`fill-${order.id}`); if(fillEl) fillEl.style.width=progress+'%'; },100); 
+      }
+
+      function updateLiveTimers() {
+        allOrders.forEach(order => {
+          if (order.order_status === 'cancelled' || order.order_status === 'delivered') return;
+          const timerEl = document.getElementById(`live-timer-${order.id}`);
+          if (!timerEl) return;
+          
+          const estMinutes = getEstimatedMinutes(order.status_log?.estimated_time);
+          const startTime = new Date(order.created_at).getTime();
+          const endTime = startTime + (estMinutes * 60 * 1000);
+          const now = Date.now();
+          
+          if (now >= endTime) {
+            timerEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>Arriving shortly...</span>`;
+            timerEl.classList.add('late');
+          } else {
+            const minsLeft = Math.ceil((endTime - now) / 60000);
+            const estTimeFormatted = new Date(endTime).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            timerEl.innerHTML = `<i class="fas fa-clock"></i> <span>Arriving in ${minsLeft} mins (Est. ${estTimeFormatted})</span>`;
+            timerEl.classList.remove('late');
+          }
+          animateTimeline(order);
+        });
+      }
+
+      setInterval(updateLiveTimers, 60000);
+      
+      function generateOrderCard(order){ 
+        const cancelled = order.order_status === 'cancelled'; 
+        const paymentMethod = order.payment_method || (order.payment_status === 'paid' ? 'online' : 'cod'); 
+        const displayId = order.order_id || `#${order.id}`; 
+        const paymentClass = paymentMethod === 'online' ? 'payment-online' : 'payment-cod'; 
+        const paymentText = paymentMethod === 'online' ? 'Paid Online' : 'Cash on Delivery'; 
+        const isPastOrder = (order.order_status === 'delivered' || order.order_status === 'cancelled');
+        let timelineOrSummaryHtml = '';
+        
+        if (isPastOrder) {
+          const deliveredTimeStr = order.status_log?.delivered ? ' at ' + formatShortTime(order.status_log.delivered) : '';
+          const cancelledTimeStr = order.status_log?.cancelled ? ' at ' + formatShortTime(order.status_log.cancelled) : '';
+          const cancelReasonStr = order.status_log?.cancel_reason ? ` <br><span style="font-size: 0.8rem; font-weight: 500; opacity: 0.9; margin-top: 4px; display: block;">Reason: ${escapeHtml(order.status_log.cancel_reason)}</span>` : '';
+          
+          const statusText = order.order_status === 'delivered' 
+            ? '✅ Delivered' + deliveredTimeStr 
+            : '❌ Cancelled' + cancelledTimeStr + cancelReasonStr;
+            
+          const statusBg = order.order_status === 'delivered' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+          const statusColor = order.order_status === 'delivered' ? '#22c55e' : '#ef4444';
+          const borderColor = order.order_status === 'delivered' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)';
+          
+          timelineOrSummaryHtml = `
+            <div class="past-order-summary" style="margin: 12px 16px 16px; padding: 16px; background: ${statusBg}; border: 1px solid ${borderColor}; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div style="color: ${statusColor}; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                ${statusText}
+              </div>
+              <button onclick="reorderPastOrder(event, ${order.id})" style="background: #22c55e; color: #000; border: none; padding: 10px 20px; border-radius: 40px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(34,197,94,0.3); transition: transform 0.2s;">
+                <i class="fas fa-redo-alt"></i> Reorder
+              </button>
+            </div>
+          `;
+        } else {
+          timelineOrSummaryHtml = renderTimeline(order);
+        }
+        
+        const cartItems = parseCartItems(order); 
+        
+        let subtotal = order.subtotal || 0, 
+            offerDiscount = order.offer_discount || 0, 
+            couponDiscount = order.coupon_discount || 0, 
+            deliveryCharge = order.applied_delivery_charge || 0, 
+            baseDelivery = order.base_delivery_charge || 0, 
+            tax = order.tax || 0, 
+            totalAmount = order.total_amount || 0; 
+            
+        let showOffer = false, showCoupon = false, totalDiscountOnly = false, totalDiscount = order.discount_amount || 0; 
+        if(offerDiscount > 0 || couponDiscount > 0){ showOffer = true; showCoupon = true; } 
+        else if(totalDiscount > 0 && (offerDiscount === 0 && couponDiscount === 0)) totalDiscountOnly = true; 
+        
+        let deliveryHtml = ''; 
+        if(deliveryCharge > 0){ 
+          if(baseDelivery > deliveryCharge && baseDelivery > 0) deliveryHtml = `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Delivery</span><span><span style="text-decoration:line-through; color:#aaa;">₹${baseDelivery.toFixed(2)}</span> <span style="color:#22c55e;">₹${deliveryCharge.toFixed(2)}</span></span></div>`; 
+          else deliveryHtml = `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Delivery</span><span>₹${deliveryCharge.toFixed(2)}</span></div>`; 
+        } else if(baseDelivery > 0 && deliveryCharge === 0) deliveryHtml = `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Delivery</span><span><span style="text-decoration:line-through;">₹${baseDelivery.toFixed(2)}</span> <span style="color:#22c55e;">Free</span></span></div>`;
+        
+        const fullAddress = `${order.customer_address}${order.customer_area ? ', ' + order.customer_area : ''}${order.customer_sub_area ? ', ' + order.customer_sub_area : ''}${order.customer_pincode ? ' - ' + order.customer_pincode : ''}`;
+
+        return `<div class="order-card ${cancelled?'cancelled':''}" data-order-id="${order.id}">
+          <div class="order-header" onclick="toggleOrderDetails(${order.id})">
+            <div>
+              <div class="order-id">${escapeHtml(displayId)}</div>
+              <div class="order-date">${formatDate(order.created_at)}</div>
+            </div>
+            <div class="order-header-right">
+              <span class="payment-badge ${paymentClass}">${paymentText}</span>
+              <span class="order-total">₹${totalAmount.toFixed(2)}</span>
+              <i class="fas fa-chevron-down expand-icon"></i>
+            </div>
+          </div>
+          ${timelineOrSummaryHtml}
+          <div class="order-details" id="details-${order.id}">
+            <div class="items-list">
+              ${cartItems.map(item => {
+                const imgUrl = item.image_url || menuMap[item.id]?.image;
+                const originalPrice = item.original_price || menuMap[item.id]?.price || 0;
+                return `<div class="item-row">
+                  <div class="item-img-container">
+                    <span class="item-fallback-text"><i class="fas fa-utensils" style="font-size: 1rem; opacity: 0.6;"></i></span>
+                    ${imgUrl ? `<img src="${imgUrl}" class="item-img-mini" alt="${escapeHtml(item.name)}" onerror="this.style.display='none'">` : ''}
+                  </div>
+                  <div class="item-details-mini">
+                    <div class="item-name-mini" style="display: flex; align-items: flex-start; gap: 6px;">
+                      ${(item.is_veg !== undefined || menuMap[item.id]?.is_veg !== undefined) ? `<span class="veg-indicator ${(item.is_veg !== undefined ? item.is_veg : menuMap[item.id]?.is_veg) ? 'veg' : 'non-veg'}" style="margin-top: 2px;"></span>` : ''}
+                      <span>${escapeHtml(item.name)}</span>
+                    </div>
+                    <div class="item-meta-mini">
+                      <span>${item.quantity} x ₹${item.price}</span>
+                      ${(originalPrice > item.price) ? `<span class="item-original-price">₹${originalPrice}</span>` : ''}
+                    </div>
+                  </div>
+                  <span class="item-price">₹${(item.price*item.quantity).toFixed(2)}</span>
+                </div>`;
+              }).join('')}
+            </div>
+            ${order.cooking_instructions ? `<div style="background:rgba(255,152,0,0.1); border:1px dashed #ff9800; padding:12px; border-radius:12px; margin:12px 0; font-size:0.9rem; animation: pulseGlow 2s infinite;">
+              <span style="color:#ff9800; font-weight:800;"><i class="fas fa-exclamation-circle"></i> INSTRUCTIONS:</span> 
+              <span style="color:#fff;">${escapeHtml(order.cooking_instructions)}</span>
+            </div>` : ''}
+            <div class="order-summary" style="margin:16px 0; padding:12px; background:rgba(0,0,0,0.3); border-radius:16px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span style="color:#aaa;">Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
+              ${showOffer&&offerDiscount>0?`<div style="display:flex; justify-content:space-between; margin-bottom:8px; color:#22c55e;"><span>Offer Discount</span><span>- ₹${offerDiscount.toFixed(2)}</span></div>`:''}
+              ${showCoupon&&couponDiscount>0?`<div style="display:flex; justify-content:space-between; margin-bottom:8px; color:#22c55e;"><span>Coupon Discount ${order.coupon_code ? `(${order.coupon_code})` : ''}</span><span>- ₹${couponDiscount.toFixed(2)}</span></div>`:''}
+              ${totalDiscountOnly&&totalDiscount>0?`<div style="display:flex; justify-content:space-between; margin-bottom:8px; color:#22c55e;"><span>Discount</span><span>- ₹${totalDiscount.toFixed(2)}</span></div>`:''}
+              ${deliveryHtml}
+              ${tax>0?`<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Tax</span><span>₹${tax.toFixed(2)}</span></div>`:''}
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;"><span>Total to Pay</span><span>₹${totalAmount.toFixed(2)}</span></div>
+              ${(offerDiscount>0||couponDiscount>0||totalDiscount>0)?`<div style="display:flex; justify-content:space-between; margin-top:6px; color:#22c55e; font-size:0.8rem;"><span><i class="fas fa-tag"></i> You save</span><span>₹${(offerDiscount+couponDiscount+totalDiscount).toFixed(2)}</span></div>`:''}
+            </div>
+            <div class="delivery-info">
+              <div><i class="fas fa-map-marker-alt"></i> <span>${escapeHtml(fullAddress)}</span></div>
+              <div><i class="fas fa-phone-alt"></i> <span>${escapeHtml(order.customer_phone||'No phone')}</span></div>
+            </div>
+          </div>
+        </div>`; }
+      
+      async function renderOrdersUI(){ if(!currentUser) return; const container=document.getElementById('ordersSection'); if(!allOrders.length){ container.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders yet</p><a href="/menu.html" style="color:#22c55e; text-decoration:none; font-weight:bold;">Browse Menu →</a></div>`; return; } const activeOrders=allOrders.filter(o=>o.order_status!=='delivered'&&o.order_status!=='cancelled'); let completedOrders=allOrders.filter(o=>o.order_status==='delivered'||o.order_status==='cancelled'); const visibleCompleted=showAllCompleted?completedOrders:completedOrders.slice(0,completedOrdersLimit); let html=''; if(activeOrders.length){ html+=`<div class="section-title">Active Orders</div>`; activeOrders.forEach(order=>{ html+=generateOrderCard(order); }); } if(completedOrders.length){ html+=`<div class="section-title">Past Orders</div>`; visibleCompleted.forEach(order=>{ html+=generateOrderCard(order); }); if(!showAllCompleted && completedOrders.length>completedOrdersLimit){ html+=`<button id="seeMoreBtn" class="see-more-btn">View ${completedOrders.length-completedOrdersLimit} more orders</button>`; } } container.innerHTML=html; updateLiveTimers(); visibleCompleted.forEach(order => animateTimeline(order)); if(!showAllCompleted && completedOrders.length>completedOrdersLimit){ document.getElementById('seeMoreBtn')?.addEventListener('click',()=>{ showAllCompleted=true; renderOrdersUI(); }); } }
+      async function loadOrders(){ if(!currentUser) return; const container=document.getElementById('ordersSection'); container.innerHTML=`<div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Fetching your orders...</p></div>`; const { data, error } = await supabaseClient.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }); if(error){ container.innerHTML=`<div class="empty-state">Error loading orders</div>`; return; } allOrders=data||[]; showAllCompleted=false; await renderOrdersUI(); }
+      window.toggleOrderDetails=(orderId)=>{ const card=document.querySelector(`.order-card[data-order-id="${orderId}"]`); if(card) card.classList.toggle('open'); };
+      
+      window.reorderPastOrder = (e, orderId) => {
+        e.stopPropagation();
+        const order = allOrders.find(o => o.id === orderId);
+        if(!order) return;
+        const cartItems = parseCartItems(order);
+        if(!cartItems || cartItems.length === 0) return;
+        
+        let currentCart = [];
+        try {
+          const saved = localStorage.getItem('mrchef_cart');
+          if(saved) currentCart = JSON.parse(saved);
+        } catch(e){}
+        
+        cartItems.forEach(item => {
+          const existing = currentCart.find(c => c.id === item.id);
+          if (existing) existing.quantity += item.quantity;
+          else currentCart.push({...item});
+        });
+        
+        localStorage.setItem('mrchef_cart', JSON.stringify(currentCart));
+        
+        const btn = e.currentTarget;
+        btn.innerHTML = '<i class="fas fa-check"></i> Added';
+        btn.style.background = '#fff';
+        
+        setTimeout(() => {
+          window.location.href = '/cart.html';
+        }, 500);
+      };
+      
+      async function loadAddresses(){ 
+        if(!currentUser) return; 
+        const container=document.getElementById('addressesList'); 
+        container.innerHTML=`<div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading addresses...</p></div>`; 
+        const { data, error } = await supabaseClient.from('addresses').select('*').eq('user_id', currentUser.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }); 
+        if(error){ container.innerHTML=`<div class="empty-state">Error loading addresses</div>`; return; } 
+        if(!data||data.length===0){ container.innerHTML=`<div class="empty-state"><i class="fas fa-map-marked-alt"></i><p>No saved addresses</p></div>`; return; } 
+        let html=''; 
+        data.forEach(addr=>{ 
+          let areaText=''; 
+          if(addr.area) areaText+=`<br>📍 ${escapeHtml(addr.area)}${addr.sub_area?', '+escapeHtml(addr.sub_area):''}`; 
+          html+=`<div class="address-card" data-id="${addr.id}">${addr.is_default?'<div class="address-default-badge">★ Default</div>':''}<div class="address-name">${escapeHtml(addr.name)}</div><div class="address-phone"><i class="fas fa-phone-alt" style="font-size:0.7rem;margin-right:4px;"></i> ${escapeHtml(addr.phone)}</div><div class="address-text">${escapeHtml(addr.address)}${areaText}${addr.landmark?`<br>Landmark: ${escapeHtml(addr.landmark)}`:''}${addr.pincode?`<br>PIN: ${escapeHtml(addr.pincode)}`:''}</div><div class="address-actions"><button class="edit-btn" onclick="editAddress(${addr.id})"><i class="fas fa-pen"></i> Edit</button><button class="danger" onclick="deleteAddress(${addr.id})"><i class="fas fa-trash"></i> Delete</button>${!addr.is_default?`<button class="star-btn" onclick="setDefaultAddress(${addr.id})"><i class="far fa-star"></i> Set Default</button>`:''}</div></div>`; 
+        }); 
+        container.innerHTML=html; 
+      }
+      
+      window.editAddress=async(id)=>{ 
+        const { data, error } = await supabaseClient.from('addresses').select('*').eq('id', id).single(); 
+        if(error) return; 
+        editingAddressId=id; 
+        document.getElementById('modalTitle').innerText='Edit Address'; 
+        document.getElementById('addrName').value=data.name; 
+        document.getElementById('addrPhone').value=data.phone; 
+        document.getElementById('addrAddress').value=data.address; 
+        document.getElementById('addrPincode').value=data.pincode||''; 
+        document.getElementById('addrLandmark').value=data.landmark||''; 
+        document.getElementById('addrDefault').checked=data.is_default; 
+        if(data.area){ await fetchAreasByPincode(data.pincode, data.area, data.sub_area); } 
+        else { document.getElementById('addrArea').innerHTML='<option value="">Enter pincode first</option>'; document.getElementById('addrArea').disabled=true; document.getElementById('addrSubArea').style.display='none'; } 
+        document.getElementById('addressModal').style.display='flex'; 
+      };
+      
+      window.deleteAddress=async(id)=>{ if(confirm('Delete this address?')){ await supabaseClient.from('addresses').delete().eq('id', id); loadAddresses(); } };
+      window.setDefaultAddress=async(id)=>{ await supabaseClient.from('addresses').update({ is_default: false }).eq('user_id', currentUser.id); await supabaseClient.from('addresses').update({ is_default: true }).eq('id', id); loadAddresses(); };
+      
+      async function fetchAreasByPincode(pincode, selectedArea=null, selectedSubArea=null){ 
+        if(!pincode||pincode.length<6) return; 
+        const { data, error } = await supabaseClient.from('delivery_zones').select('area, sub_area').eq('pincode', pincode).eq('is_active', true); 
+        const areaSelect=document.getElementById('addrArea'); 
+        if(error||!data.length){ 
+          areaSelect.innerHTML='<option value="">No delivery to this pincode</option>'; 
+          areaSelect.classList.add('select-error'); 
+          areaSelect.disabled=true; 
+          document.getElementById('addrSubArea').style.display='none'; 
+          return; 
+        } 
+        areaSelect.classList.remove('select-error'); 
+        const areas=[...new Map(data.map(item=>[item.area,item])).values()]; 
+        areaSelect.innerHTML='<option value="">Select Area</option>'; 
+        areas.forEach(a=>{ areaSelect.innerHTML+=`<option value="${escapeHtml(a.area)}" ${selectedArea===a.area?'selected':''}>${escapeHtml(a.area)}</option>`; }); 
+        areaSelect.disabled=false; 
+        const updateSubAreas=(selectedAreaVal)=>{ 
+          const subAreas=data.filter(d=>d.area===selectedAreaVal && d.sub_area).map(d=>d.sub_area); 
+          const subSelect=document.getElementById('addrSubArea'); 
+          if(subAreas.length){ 
+            subSelect.innerHTML='<option value="">Select Sub‑Area</option>'; 
+            subAreas.forEach(sa=>{ subSelect.innerHTML+=`<option value="${escapeHtml(sa)}" ${selectedSubArea===sa?'selected':''}>${escapeHtml(sa)}</option>`; }); 
+            subSelect.style.display='block'; 
+            subSelect.disabled=false; 
+          } else subSelect.style.display='none'; 
+        }; 
+        if(selectedArea) updateSubAreas(selectedArea); 
+        areaSelect.onchange=(e)=>updateSubAreas(e.target.value); 
+      }
+      
+      async function saveAddress(){ 
+        const name=document.getElementById('addrName').value.trim(); 
+        const phone=document.getElementById('addrPhone').value.trim(); 
+        const address=document.getElementById('addrAddress').value.trim(); 
+        const pincode=document.getElementById('addrPincode').value.trim(); 
+        const landmark=document.getElementById('addrLandmark').value.trim(); 
+        const area=document.getElementById('addrArea').value; 
+        const subArea=document.getElementById('addrSubArea').value; 
+        const isDefault=document.getElementById('addrDefault').checked; 
+        if(!name||!phone||!address||!pincode){ alert('Please fill all required fields'); return; } 
+        if(!area||area==='No delivery to this pincode'||area==='Enter pincode first'){ alert('Please select a valid area from dropdown'); return; } 
+        if(isDefault) await supabaseClient.from('addresses').update({ is_default: false }).eq('user_id', currentUser.id); 
+        if(editingAddressId){ await supabaseClient.from('addresses').update({ name, phone, address, pincode, landmark, area, sub_area: subArea||null, is_default: isDefault }).eq('id', editingAddressId); } 
+        else { await supabaseClient.from('addresses').insert({ user_id: currentUser.id, name, phone, address, pincode, landmark, area, sub_area: subArea||null, is_default: isDefault }); } 
+        closeAddressModal(); loadAddresses(); 
+      }
+      
+      function closeAddressModal(){ document.getElementById('addressModal').style.display='none'; editingAddressId=null; resetAddressModal(); }
+      function showOrdersTab(){ document.getElementById('ordersSection').style.display='block'; document.getElementById('addressesSection').style.display='none'; document.getElementById('tabOrders').classList.add('active'); document.getElementById('tabAddresses').classList.remove('active'); loadOrders(); }
+      function showAddressesTab(){ document.getElementById('ordersSection').style.display='none'; document.getElementById('addressesSection').style.display='block'; document.getElementById('tabOrders').classList.remove('active'); document.getElementById('tabAddresses').classList.add('active'); loadAddresses(); }
+      
+      // 🔥 FIX 2: PREVENT UNNECESSARY SESSION CALLS 🔥
+      async function updateAuthUI(providedSession = undefined){
+        let session;
+        if (providedSession !== undefined) {
+          session = providedSession;
+        } else {
+          const { data } = await supabaseClient.auth.getSession();
+          session = data.session;
+        }
+        
+        const authDiv = document.getElementById('authButton');
+        const popover = document.getElementById('profilePopover');
+        
+        if (session) {
+          currentUser = session.user;
+          const name = currentUser.user_metadata?.full_name || 'Member';
+          const email = currentUser.email || '';
+          const avatarUrl = currentUser.user_metadata?.avatar_url;
+          const initial = name.charAt(0).toUpperCase();
+          authDiv.innerHTML = `<div class="user-avatar-btn" id="avatarTrigger">${avatarUrl ? `<img src="${avatarUrl}" alt="${name}">` : `<i class="fas fa-user"></i>`}</div>`;
+          popover.innerHTML = `<div class="popover-user-info"><div class="popover-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="${name}">` : initial}</div><div class="popover-name">${escapeHtml(name)}</div><div class="popover-email">${escapeHtml(email)}</div></div><div class="popover-divider"></div><button class="popover-btn logout-popover-btn" id="popoverLogoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>`;
+          document.getElementById('avatarTrigger').addEventListener('click', (e) => { e.stopPropagation(); popover.classList.toggle('show'); });
+          document.getElementById('popoverLogoutBtn').addEventListener('click', async () => { await supabaseClient.auth.signOut(); location.reload(); });
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('tab') === 'addresses') showAddressesTab(); else showOrdersTab();
+        } else {
+          authDiv.innerHTML = `<div class="user-avatar-btn" id="avatarTrigger"><i class="fas fa-user-circle" style="color: #888;"></i></div>`;
+          popover.innerHTML = `<div class="popover-user-info"><div class="popover-avatar" style="background: #222; color: #666;"><i class="fas fa-user"></i></div><div class="popover-name">Welcome!</div><div class="popover-email">Login to access your profile</div></div><button class="popover-btn login-google-btn" id="popoverLoginBtn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="G"> Login with Google</button>`;
+          document.getElementById('avatarTrigger').addEventListener('click', (e) => { e.stopPropagation(); popover.classList.toggle('show'); });
+          document.getElementById('popoverLoginBtn').addEventListener('click', () => { supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/account.html' } }); });
+          const loginMsg = '<div class="empty-state"><i class="fas fa-lock"></i><p>Please login to access your account.</p><button class="add-address-btn" style="margin-top:10px; margin-bottom:0;" onclick="event.stopPropagation(); document.getElementById(\'avatarTrigger\')?.click()">Login Now</button></div>';
+          document.getElementById('ordersSection').innerHTML = loginMsg; document.getElementById('addressesSection').innerHTML = loginMsg;
+        }
+        document.addEventListener('click', (e) => { if (popover && !popover.contains(e.target) && e.target.id !== 'avatarTrigger') popover.classList.remove('show'); });
+      }
+
+      function attachPincodeEvent(){
+        const pincodeInput = document.getElementById('addrPincode');
+        let pincodeTimeout;
+        pincodeInput.oninput = (e) => {
+          clearTimeout(pincodeTimeout);
+          const val = e.target.value.trim();
+          if (val.length === 6) {
+            pincodeTimeout = setTimeout(() => fetchAreasByPincode(val), 500);
+          } else {
+            const areaSelect = document.getElementById('addrArea');
+            areaSelect.innerHTML = '<option value="">Enter pincode first</option>';
+            areaSelect.disabled = true;
+            areaSelect.classList.remove('select-error');
+            document.getElementById('addrSubArea').style.display = 'none';
+          }
+        };
+      }
+
+      async function init() {
+        await fetchMenuMap(); await updateAuthUI(); attachPincodeEvent(); 
+      }
+
+      document.addEventListener('DOMContentLoaded',async()=>{ 
+        document.getElementById('navHome')?.addEventListener('click',()=>window.location.href='/index.html');
+        document.getElementById('navMenu')?.addEventListener('click',()=>window.location.href='/menu.html');
+        document.getElementById('navCart')?.addEventListener('click',()=>window.location.href='/cart.html');
+        document.getElementById('navAccount')?.addEventListener('click',()=>window.location.href='/account.html');
+        
+        await init();
+
+        document.getElementById('tabOrders')?.addEventListener('click',showOrdersTab); 
+        document.getElementById('tabAddresses')?.addEventListener('click',showAddressesTab); 
+        document.getElementById('tabSupport')?.addEventListener('click',showSupportTab); 
+        document.getElementById('addAddressBtn')?.addEventListener('click',()=>{ editingAddressId=null; document.getElementById('modalTitle').innerText='Add Address'; document.getElementById('addressModal').style.display='flex'; resetAddressModal(); });
+        document.getElementById('saveAddressBtn')?.addEventListener('click',saveAddress); 
+        document.getElementById('cancelAddressBtn')?.addEventListener('click',closeAddressModal); 
+        document.getElementById('closeModal')?.addEventListener('click',closeAddressModal); 
+        window.onclick=(e)=>{ if(e.target===document.getElementById('addressModal')) closeAddressModal(); }; 
+      });
+
+      // 🔥 FIX 4: SAFE TAB REFRESH ON VISIBILITY CHANGE 🔥
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          console.log('Tab visible: safely refreshing account data...');
+          if (currentUser) {
+            if (document.getElementById('tabAddresses')?.classList.contains('active')) {
+              loadAddresses();
+            } else if (document.getElementById('tabSupport')?.classList.contains('active')) {
+              loadTickets();
+            } else {
+              loadOrders();
+            }
+          }
+        }
+      });
+      
+      document.getElementById('detectPincodeBtn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('detectPincodeBtn');
+        const icon = btn.querySelector('i');
+        const originalClass = icon.className;
+        icon.className = 'fas fa-spinner fa-spin';
+        if (!navigator.geolocation) { alert("GPS not supported"); icon.className = originalClass; return; }
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&addressdetails=1`);
+            const data = await res.json();
+            if (data && data.address && data.address.postcode) {
+              const pincode = data.address.postcode.replace(/\s/g, '').substring(0, 6);
+              const pinInput = document.getElementById('addrPincode');
+              pinInput.value = pincode;
+              pinInput.dispatchEvent(new Event('input'));
+            } else { alert("Could not detect pincode"); }
+          } catch(e) { alert("Error detecting pincode"); }
+          finally { icon.className = originalClass; }
+        }, (err) => { alert("Location access denied"); icon.className = originalClass; }, { enableHighAccuracy: true, timeout: 5000 });
+      });
+
+      async function initLocation() {
+        const locText = document.getElementById('userLocation');
+        const cached = localStorage.getItem('userLocationCache');
+        const now = Date.now();
+        if (cached) {
+          try {
+            const { text, timestamp } = JSON.parse(cached);
+            if (now - timestamp < 10 * 60 * 1000) { // 10 minutes
+              locText.innerText = text;
+              return;
+            }
+          } catch(e) { localStorage.removeItem('userLocationCache'); }
+        }
+
+        if (!navigator.geolocation) { locText.innerText = "GPS Not Supported"; return; }
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+            const data = await res.json();
+            if (data && data.address) {
+              const addr = data.address;
+              const area = addr.suburb || addr.neighbourhood || addr.road || addr.city_district || "";
+              const city = addr.city || addr.town || addr.village || addr.state_district || "";
+              const pincode = addr.postcode || "";
+              let finalLoc = (area && city) ? (area.toLowerCase().trim() === city.toLowerCase().trim() ? area : `${area}, ${city}`) : (area || city || "Location Found");
+              const displayText = pincode ? `${finalLoc} - ${pincode}` : finalLoc;
+              locText.innerText = displayText;
+              localStorage.setItem('userLocationCache', JSON.stringify({ text: displayText, timestamp: Date.now() }));
+            } else { locText.innerText = "Location Found"; }
+          } catch (err) { locText.innerText = "Location Found"; }
+        }, (error) => { locText.innerText = "Location Access Denied"; }, { enableHighAccuracy: true, timeout: 5000 });
+      }
+      initLocation();
+      function resetAddressModal(){ document.getElementById('addrName').value=''; document.getElementById('addrPhone').value=''; document.getElementById('addrPincode').value=''; document.getElementById('addrAddress').value=''; document.getElementById('addrLandmark').value=''; document.getElementById('addrDefault').checked=false; document.getElementById('addrArea').innerHTML='<option value="">Enter pincode first</option>'; document.getElementById('addrArea').disabled=true; document.getElementById('addrSubArea').style.display='none'; }
+      
+      // 🔥 FIX 3: PASS SESSION ON AUTH CHANGE 🔥
+      supabaseClient.auth.onAuthStateChange((event, session)=>{ 
+        updateAuthUI(session); 
+      });
+
+      // --- UTILS ---
+      function showToast(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        if (isError) toast.style.background = '#ef4444';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+      }
+      function showLoading(message = 'Processing...') {
+        if (loadingOverlay) loadingOverlay.remove();
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.innerHTML = `<div class="spinner"></div><div>${message}</div>`;
+        document.body.appendChild(loadingOverlay);
+      }
+      function hideLoading() { if (loadingOverlay) { loadingOverlay.remove(); loadingOverlay = null; } }
+
+      // --- HYBRID SUPPORT LOGIC ---
+      let currentSupportType = 'ticket';
+      const WHATSAPP_NUMBER = "918807760602"; // 👈 UPDATED NUMBER
+
+      function showOrdersTab(){ 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('tabOrders').classList.add('active');
+        document.getElementById('ordersSection').style.display='block';
+        document.getElementById('addressesSection').style.display='none';
+        document.getElementById('supportSection').style.display='none';
+        loadOrders();
+      }
+      function showAddressesTab(){ 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('tabAddresses').classList.add('active');
+        document.getElementById('ordersSection').style.display='none';
+        document.getElementById('addressesSection').style.display='block';
+        document.getElementById('supportSection').style.display='none';
+        loadAddresses();
+      }
+      function showSupportTab(){ 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('tabSupport').classList.add('active');
+        document.getElementById('ordersSection').style.display='none';
+        document.getElementById('addressesSection').style.display='none';
+        document.getElementById('supportSection').style.display='block';
+        loadTickets();
+      }
+
+      function openSupportForm(type) {
+        currentSupportType = type;
+        const title = document.getElementById('supportModalTitle');
+        const btn = document.getElementById('supportSubmitBtn');
+        if(type === 'whatsapp') {
+          title.innerText = "WhatsApp Support";
+          btn.innerHTML = '<i class="fab fa-whatsapp"></i> Send on WhatsApp';
+          btn.style.background = "#25D366"; btn.style.color = "#fff";
+        } else {
+          title.innerText = "Raise a Ticket";
+          btn.innerText = "Submit Request";
+          btn.style.background = "#22c55e"; btn.style.color = "#000";
+        }
+        const select = document.getElementById('supportOrder');
+        select.innerHTML = '<option value="">Select Order (Optional)</option>';
+        allOrders.forEach(o => { select.innerHTML += `<option value="${o.order_id}">${o.order_id} (₹${o.total_amount})</option>`; });
+        document.getElementById('supportModal').style.display = 'flex';
+      }
+      function closeSupportModal(){ document.getElementById('supportModal').style.display = 'none'; }
+      document.getElementById('closeSupportModal')?.addEventListener('click', closeSupportModal);
+      document.getElementById('btnSupportWa')?.addEventListener('click', () => openSupportForm('whatsapp'));
+      document.getElementById('btnSupportTicket')?.addEventListener('click', () => openSupportForm('ticket'));
+      document.getElementById('supportSubmitBtn')?.addEventListener('click', submitSupportRequest);
+
+      async function submitSupportRequest() {
+        if(!currentUser) return;
+        const orderId = document.getElementById('supportOrder').value;
+        const subject = document.getElementById('supportSubject').value;
+        const message = document.getElementById('supportMessage').value.trim();
+        if(!subject || !message) { showToast('Please fill all fields', true); return; }
+        showLoading('Saving request...');
+        try {
+          const { error } = await supabaseClient.from('support_tickets').insert({
+            user_id: currentUser.id,
+            user_name: currentUser.user_metadata?.full_name || 'Anonymous User',
+            order_id: orderId || null,
+            subject: subject, description: message, source: currentSupportType
+          });
+          if(error) throw error;
+          if(currentSupportType === 'whatsapp') {
+            const waText = `*Support Request* 📝\n\n*Order ID:* ${orderId || 'N/A'}\n*Issue:* ${subject}\n*Message:* ${message}\n\n*Customer:* ${currentUser.user_metadata?.full_name || 'Member'}`;
+            const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
+            window.open(waUrl, '_blank');
+          }
+          showToast('Request submitted successfully!');
+          closeSupportModal(); loadTickets();
+          document.getElementById('supportSubject').value = ""; document.getElementById('supportMessage').value = "";
+        } catch (err) { showToast('Error: ' + err.message, true); }
+        finally { hideLoading(); }
+      }
+
+      async function loadTickets() {
+        if(!currentUser) return;
+        const list = document.getElementById('ticketsList');
+        list.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;"><i class="fas fa-spinner fa-spin"></i></div>';
+        const { data, error } = await supabaseClient.from('support_tickets').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+        if(error) { list.innerHTML = '<div class="empty-state">Error loading tickets</div>'; return; }
+        if(!data.length) { list.innerHTML = '<div class="empty-state">No tickets yet</div>'; return; }
+        
+        allTickets = data || []; // Store globally for easy access
+
+        list.innerHTML = data.map(t => {
+          let tagClass = 'tag-other';
+          let icon = 'fa-ticket-alt';
+          const sub = (t.subject || '').toLowerCase();
+          if(sub.includes('payment')) { tagClass = 'tag-payment'; icon = 'fa-credit-card'; }
+          else if(sub.includes('food') || sub.includes('quality')) { tagClass = 'tag-food'; icon = 'fa-hamburger'; }
+          else if(sub.includes('status') || sub.includes('delay')) { tagClass = 'tag-status'; icon = 'fa-clock'; }
+
+          return `
+          <div class="ticket-card">
+            <div class="ticket-header">
+              <span class="ticket-subject"><i class="fas ${icon}" style="margin-right:8px; opacity:0.7;"></i>${escapeHtml(t.subject)}</span>
+              <span class="ticket-status ${t.status === 'open' ? 'status-open' : 'status-resolved'}">${t.status}</span>
+            </div>
+            <div style="margin-bottom:12px;"><span class="category-tag ${tagClass}">${t.subject}</span></div>
+            <p class="ticket-desc" style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">${escapeHtml(t.description.substring(0,80))}${t.description.length > 80 ? '...' : ''}</p>
+            <button onclick="openTicketChat('${t.id}')" style="width:100%; background:linear-gradient(90deg, #3b82f6, #2563eb); border:none; color:#fff; padding:12px; border-radius:15px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">
+              <i class="far fa-comments"></i> View & Reply
+            </button>
+            <div class="ticket-footer" style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+              <span>Order: ${t.order_id || 'N/A'}</span>
+              <span>${formatDate(t.created_at)}</span>
+            </div>
+          </div>
+        `}).join('');
+      }
+
+      let currentChatTicketId = null;
+
+      window.openTicketChat = (ticketId) => {
+        const ticket = allTickets.find(t => t.id === ticketId);
+        if(!ticket) return;
+        currentChatTicketId = ticketId;
+
+        document.getElementById('chatModalTitle').innerText = ticket.subject;
+        document.getElementById('chatModalDetails').innerHTML = `<b>Order:</b> ${ticket.order_id || 'N/A'}<br><b>Problem:</b> ${escapeHtml(ticket.description)}`;
+        
+        renderChatMessages(ticket);
+        document.getElementById('ticketChatModal').style.display = 'flex';
+      };
+
+      function renderChatMessages(ticket) {
+        const msgContainer = document.getElementById('chatModalMessages');
+        const footer = document.getElementById('chatModalFooter');
+        const messages = ticket.messages || [];
+
+        msgContainer.innerHTML = messages.map(m => `
+          <div style="padding:12px 16px; border-radius:20px; font-size:0.85rem; line-height:1.4; ${m.role === 'admin' ? 'background:linear-gradient(135deg, #1e293b, #0f172a); border:1px solid #334155; color:#f1f5f9; margin-right:15%; border-bottom-left-radius:4px;' : 'background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; margin-left:15%; text-align:right; border-bottom-right-radius:4px;'}">
+            <b style="font-size:0.65rem; display:block; opacity:0.7; margin-bottom:4px; text-transform:uppercase;">${m.role === 'admin' ? 'Support Hero' : 'You'}</b>
+            ${escapeHtml(m.text)}
+            <div style="font-size:0.6rem; opacity:0.5; margin-top:6px;">${new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+          </div>
+        `).join('');
+
+        if(ticket.status !== 'resolved') {
+          footer.innerHTML = `
+            <div style="display:flex; gap:10px; width:100%; align-items:center; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
+              <input type="text" id="chatReplyInput" placeholder="Type your message..." style="flex:1; background:#000; border:1px solid #333; border-radius:15px; padding:12px 18px; color:#fff; outline:none; font-size:0.9rem;">
+              <button onclick="sendChatReply()" style="background:#22c55e; border:none; color:#000; padding:12px 20px; border-radius:15px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                <span>Send</span> <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          `;
+          footer.style.display = 'flex';
+        } else {
+          footer.innerHTML = '<div style="color:#666; font-size:0.8rem; text-align:center; padding:10px;">Ticket closed. No further replies allowed.</div>';
+          footer.style.display = 'flex';
+        }
+
+        // Scroll to bottom
+        setTimeout(() => { msgContainer.scrollTop = msgContainer.scrollHeight; }, 100);
+      }
+
+      window.closeTicketChat = () => {
+        document.getElementById('ticketChatModal').style.display = 'none';
+        currentChatTicketId = null;
+      };
+
+      window.sendChatReply = async () => {
+        if(!currentChatTicketId) return;
+        const input = document.getElementById('chatReplyInput');
+        const text = input.value.trim();
+        if(!text) return;
+
+        const ticket = allTickets.find(t => t.id === currentChatTicketId);
+        const newMessages = [...(ticket.messages || []), { role: 'user', text: text, time: new Date().toISOString() }];
+
+        input.disabled = true;
+        const { error } = await supabaseClient.from('support_tickets').update({ messages: newMessages, updated_at: new Date().toISOString() }).eq('id', currentChatTicketId);
+        
+        if(error) {
+          showToast('Failed to send message', true);
+          input.disabled = false;
+        } else {
+          input.value = '';
+          input.disabled = false;
+          // Refresh local data
+          ticket.messages = newMessages;
+          renderChatMessages(ticket);
+        }
+      };
+      
+    })();
+  </script>
+</body>
+</html>

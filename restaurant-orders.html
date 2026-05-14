@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, user-scalable=yes">
+  <title>Restaurant Orders · Mr Chef</title>
+  <meta name="theme-color" content="#000000">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      padding-bottom: 70px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 110;
+    }
+
+    .logo img {
+      height: 32px;
+      width: auto;
+      border-radius: 8px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .brand-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #22c55e;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .location-name {
+      font-size: 0.75rem;
+      color: #aaa;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .location-name i {
+      font-size: 0.65rem;
+      color: #22c55e;
+    }
+
+    .logout-btn {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .main-content {
+      padding: 16px 12px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #22c55e;
+      font-weight: 700;
+    }
+
+    .stage-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 12px 0;
+      margin-bottom: 16px;
+      -webkit-overflow-scrolling: touch;
+      position: sticky;
+      top: 57px;
+      z-index: 100;
+      background: #000000;
+      margin-left: -12px;
+      margin-right: -12px;
+      padding-left: 12px;
+      padding-right: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .stage-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .stage-btn {
+      background: rgba(30, 30, 30, 0.8);
+      border: none;
+      padding: 10px 18px;
+      border-radius: 40px;
+      color: #aaa;
+      font-weight: 600;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .stage-btn.active {
+      background: #22c55e;
+      color: black;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+    }
+
+    .stage-btn .count {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 8px;
+      font-size: 0.7rem;
+    }
+
+    .order-card {
+      background: rgba(25, 25, 25, 0.95);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .order-card-header {
+      padding: 14px 50px 14px 16px;
+      background: rgba(20, 20, 20, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .kebab-menu-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #aaa;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+
+    .kebab-menu-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .kebab-dropdown {
+      display: none;
+      position: absolute;
+      top: 44px;
+      right: 12px;
+      background: #1e1e1e;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      min-width: 160px;
+      overflow: hidden;
+    }
+
+    .kebab-dropdown.open {
+      display: block;
+    }
+
+    .kebab-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .kebab-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .kebab-item.danger {
+      color: #ef4444;
+    }
+
+    .kebab-item.danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .order-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .order-id {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .order-date {
+      font-size: 0.7rem;
+      color: #888;
+    }
+
+    .order-total {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #22c55e;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .status-badge.received {
+      background: #3498db;
+      color: white;
+    }
+
+    .status-badge.preparing {
+      background: #f39c12;
+      color: black;
+    }
+
+    .status-badge.ready {
+      background: #1abc9c;
+      color: black;
+    }
+
+    .status-badge.out_for_delivery {
+      background: #9b59b6;
+      color: white;
+    }
+
+    .status-badge.delivered {
+      background: #2ecc71;
+      color: black;
+    }
+
+    .status-badge.cancelled {
+      background: #ef4444;
+      color: white;
+    }
+
+    .order-card-body {
+      padding: 16px;
+    }
+
+    .customer-section {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .customer-name {
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .call-btn,
+    .whatsapp-btn,
+    .download-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .call-btn {
+      background: rgba(52, 152, 219, 0.15);
+      border: 1px solid rgba(52, 152, 219, 0.3);
+      color: #3498db;
+    }
+
+    .whatsapp-btn {
+      background: rgba(37, 211, 102, 0.15);
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      color: #25d366;
+    }
+
+    .download-btn {
+      background: rgba(155, 89, 182, 0.15);
+      border: 1px solid rgba(155, 89, 182, 0.3);
+      color: #9b59b6;
+    }
+
+    .address-text {
+      font-size: 0.8rem;
+      color: #bbb;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    .address-detail {
+      color: #888;
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.8rem;
+    }
+
+    .items-table th,
+    .items-table td {
+      text-align: left;
+      padding: 8px 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .items-table th {
+      color: #aaa;
+      font-weight: 600;
+    }
+
+    /* Veg Indicator Badge on Image */
+    .item-img-container {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      background: rgba(34, 197, 94, 0.08);
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .item-fallback-text {
+      color: #22c55e;
+      font-weight: 800;
+      text-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+    }
+
+    .item-img-mini {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .item-img-container .veg-indicator {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      z-index: 5;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1.5px;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .veg-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 1.2px solid;
+      border-radius: 2px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .veg-indicator::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    .veg-indicator.veg {
+      border-color: #22c55e;
+    }
+
+    .veg-indicator.veg::after {
+      background: #22c55e;
+    }
+
+    .veg-indicator.non-veg {
+      border-color: #ef4444;
+    }
+
+    .veg-indicator.non-veg::after {
+      background: #ef4444;
+    }
+
+    .item-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .order-summary {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      padding: 12px;
+      margin: 12px 0;
+      font-size: 0.8rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .offer-discount {
+      color: #22c55e;
+    }
+
+    .stage-control {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .next-stage-btn {
+      flex: 1;
+      background: #22c55e;
+      border: none;
+      padding: 12px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: black;
+      cursor: pointer;
+    }
+
+    /* Swipe Slider */
+    .swipe-slider-wrap {
+      flex: 1;
+      position: relative;
+      height: 48px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1.5px solid rgba(34, 197, 94, 0.3);
+      border-radius: 40px;
+      overflow: hidden;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .swipe-track-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 48px;
+      background: rgba(34, 197, 94, 0.15);
+      border-radius: 40px;
+      pointer-events: none;
+      transition: width 0.05s linear;
+    }
+
+    .swipe-thumb {
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      bottom: 3px;
+      width: 42px;
+      background: #22c55e;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-size: 1rem;
+      cursor: grab;
+      transition: left 0.05s linear;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+    }
+
+    .swipe-thumb:active {
+      cursor: grabbing;
+    }
+
+    .swipe-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #22c55e;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      padding-left: 52px;
+    }
+
+    .cancel-order-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    .print-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      padding: 10px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    .popup-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(12px);
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+
+    .popup-modal-content {
+      background: #1e1e1e;
+      border-radius: 28px;
+      width: 85%;
+      max-width: 320px;
+      padding: 24px;
+      text-align: center;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      animation: popupFadeIn 0.2s ease;
+    }
+
+    @keyframes popupFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .popup-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .popup-icon.error {
+      color: #ef4444;
+    }
+
+    .popup-icon.success {
+      color: #22c55e;
+    }
+
+    .popup-icon.info {
+      color: #3498db;
+    }
+
+    .popup-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .popup-message {
+      color: #aaa;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .popup-btn {
+      background: #22c55e;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      color: black;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    /* Modern Confirm Dialog */
+    .confirm-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+    }
+
+    .confirm-modal.open {
+      display: flex;
+    }
+
+    .confirm-card {
+      background: #1a1a1a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      width: 88%;
+      max-width: 340px;
+      padding: 28px 24px 20px;
+      text-align: center;
+      animation: popupFadeIn 0.2s ease;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .confirm-icon {
+      font-size: 2.4rem;
+      margin-bottom: 14px;
+    }
+
+    .confirm-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .confirm-msg {
+      font-size: 0.82rem;
+      color: #aaa;
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .confirm-cancel-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #aaa;
+      padding: 12px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .confirm-cancel-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .confirm-ok-btn {
+      flex: 1;
+      background: #ef4444;
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .confirm-ok-btn:hover {
+      background: #dc2626;
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+      }
+    }
+
+    .sound-toggle {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 10px;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .sound-toggle.muted {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .sound-toggle.active {
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+      animation: pulseGlow 2s infinite;
+    }
+
+    /* Auth Overlay Styles */
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .auth-card {
+      background: rgba(25, 25, 25, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 40px 24px;
+      border-radius: 32px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-icon {
+      font-size: 3rem;
+      color: #22c55e;
+      margin-bottom: 20px;
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .auth-desc {
+      color: #aaa;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .google-login-btn {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .google-login-btn:active {
+      transform: scale(0.98);
+    }
+
+    .google-login-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(34, 197, 94, 0.1);
+      border-top: 4px solid #22c55e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Siren Audio -->
+  <audio id="sirenAudio" src="/siren.mp3" loop preload="auto"></audio>
+
+  <!-- Auth Overlay -->
+  <div id="authOverlay">
+    <div class="auth-card" id="authCard">
+      <div class="loading-spinner"></div>
+      <div class="auth-title">Verifying Access</div>
+      <div class="auth-desc">Please wait while we secure your session...</div>
+    </div>
+  </div>
+
+  <div class="app-header">
+    <div class="header-left">
+      <div class="logo"><img src="/logo.png" alt="Mr Chef" onerror="this.style.display='none'"></div>
+      <div class="brand-info">
+        <div class="brand-title">MR CHEF</div>
+        <div class="location-name">
+          <i class="fas fa-location-arrow"></i> <span id="userLocation">Detecting...</span>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button id="soundToggle" class="sound-toggle muted" title="Toggle Sound Notifications">
+        <i class="fas fa-volume-mute"></i>
+      </button>
+      <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <h1>🍳 Kitchen Orders</h1>
+
+    <div class="stage-tabs" id="stageTabs">
+      <button class="stage-btn" data-stage="all">📋 All</button>
+      <button class="stage-btn" data-stage="received">📥 Received</button>
+      <button class="stage-btn" data-stage="preparing">🔥 Preparing</button>
+      <button class="stage-btn" data-stage="ready">✅ Ready</button>
+      <button class="stage-btn" data-stage="out_for_delivery">🛵 Out</button>
+      <button class="stage-btn" data-stage="delivered">🏠 Delivered</button>
+      <button class="stage-btn" data-stage="cancelled">❌ Cancelled</button>
+    </div>
+
+    <div id="ordersContainer">
+      <div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i>
+        <p>Loading orders...</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="popupModal" class="popup-modal">
+    <div class="popup-modal-content">
+      <div class="popup-icon" id="popupIcon"></div>
+      <div class="popup-title" id="popupTitle"></div>
+      <div class="popup-message" id="popupMessage"></div>
+      <button class="popup-btn" onclick="closePopup()">OK</button>
+    </div>
+  </div>
+
+  <!-- Modern Confirm Dialog -->
+  <div id="confirmModal" class="confirm-modal">
+    <div class="confirm-card">
+      <div class="confirm-icon" id="confirmIcon">⚠️</div>
+      <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+      <div class="confirm-msg" id="confirmMsg"></div>
+      <select id="cancelReasonSelect" style="display:none; width: 100%; margin-top: 16px; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; font-size: 0.9rem;">
+        <option value="Items out of stock">Items out of stock</option>
+        <option value="Kitchen closed / Overloaded">Kitchen closed / Overloaded</option>
+        <option value="Customer requested cancellation">Customer requested cancellation</option>
+        <option value="Fake / Suspicious Order">Fake / Suspicious Order</option>
+        <option value="Delivery partner unavailable">Delivery partner unavailable</option>
+        <option value="Other">Other (Type below)</option>
+      </select>
+      <input type="text" id="cancelReasonOther" placeholder="Type custom reason..." style="display:none; width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; font-size: 0.9rem;">
+      <div class="confirm-actions" style="margin-top: 20px;">
+        <button class="confirm-cancel-btn" id="confirmCancelBtn">Cancel</button>
+        <button class="confirm-ok-btn" id="confirmOkBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 🔥 FIX 1: SUPABASE LOCK BYPASS & Standardized Initialization 🔥
+    const SUPABASE_URL = 'https://ciixjaljoxrziyebmfuj.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_rqQb3sXdRIBQKQ9j-BV76Q_2UeukIL3';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { 
+        persistSession: true, 
+        storage: localStorage, 
+        detectSessionInUrl: true,
+        // MAGIC FIX: Bypass navigator.locks completely
+        lock: async (name, timeout, fn) => {
+          return await fn();
+        }
+      }
+    });
+
+    let currentUser = null;
+
+    window.handleLogout = async () => {
+      await supabaseClient.auth.signOut();
+      sessionStorage.removeItem('is_admin_verified');
+      location.reload();
+    };
+    let allOrders =[];
+    let currentStage = 'received';
+    let menuMap = {};
+    let printerCharacteristic = null;
+
+    async function fetchMenuMap() {
+      const { data, error } = await supabaseClient.from('menu').select('id, image_url, is_veg, price, offer_price');
+      if (!error && data) {
+        data.forEach(item => {
+          menuMap[item.id] = { 
+            image: item.image_url, 
+            is_veg: item.is_veg,
+            price: item.price,
+            offer_price: item.offer_price
+          };
+        });
+      }
+    }
+    const PRINTER_SERVICES = ['000018f0-0000-1000-8000-00805f9b34fb'];
+    const PRINT_CHARACTERISTICS = ['00002af1-0000-1000-8000-00805f9b34fb'];
+
+    function showPopup(message, type = 'error', title = '') {
+      const modal = document.getElementById('popupModal');
+      const iconEl = document.getElementById('popupIcon');
+      const titleEl = document.getElementById('popupTitle');
+      const msgEl = document.getElementById('popupMessage');
+      if (type === 'error') {
+        iconEl.innerHTML = '<i class="fas fa-times-circle"></i>';
+        iconEl.className = 'popup-icon error';
+        titleEl.innerText = title || 'Error';
+      } else if (type === 'success') {
+        iconEl.innerHTML = '<i class="fas fa-check-circle"></i>';
+        iconEl.className = 'popup-icon success';
+        titleEl.innerText = title || 'Success';
+      } else {
+        iconEl.innerHTML = '<i class="fas fa-info-circle"></i>';
+        iconEl.className = 'popup-icon info';
+        titleEl.innerText = title || 'Information';
+      }
+      msgEl.innerText = message;
+      modal.style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('popupModal').style.display = 'none';
+    }
+
+    // Export to window
+    window.showPopup = showPopup;
+    window.closePopup = closePopup;
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
+
+    function formatTimeSafe(isoString) {
+      if (!isoString) return '';
+      return new Date(isoString).toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata', 
+        day: '2-digit', month: 'short', year: 'numeric', 
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+    }
+
+    function parseCartItems(order) {
+      if (!order.cart_items) return[];
+      if (typeof order.cart_items === 'string') {
+        try { return JSON.parse(order.cart_items); } catch (e) { return[]; }
+      }
+      return order.cart_items;
+    }
+
+    async function updateOrderStatus(orderId, newStatus, cancelReason = null) {
+      console.log(`Attempting to update Order ID: ${orderId} to Status: ${newStatus}`);
+      try {
+        const order = allOrders.find(o => o.id === orderId);
+        let currentLog = { ...(order?.status_log || {}) };
+        
+        currentLog[newStatus] = new Date().toISOString();
+        
+        if (newStatus === 'cancelled' && cancelReason) {
+          currentLog['cancel_reason'] = cancelReason;
+        }
+
+        const { data, error } = await supabaseClient
+          .from('orders')
+          .update({ 
+            order_status: newStatus,
+            status_log: currentLog
+          })
+          .eq('id', orderId)
+          .select(); 
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          console.warn("No rows updated. This is usually due to RLS policies or incorrect Order ID.");
+          showPopup("No changes made. Please check if you have Admin RLS permissions for the 'orders' table.", 'error', 'Update Failed');
+          return;
+        }
+
+        console.log("Update Successful:", data);
+        showPopup(`Order status updated to ${newStatus.replace('_', ' ')}`, 'success', 'Success');
+        await loadOrders();
+      } catch (err) {
+        console.error("Critical Update Error:", err);
+        showPopup(err.message || "Connection Error", 'error', 'Error');
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        allOrders = data ||[];
+        renderStageTabs();
+        renderOrders();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('ordersContainer').innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
+      }
+    }
+
+    function renderStageTabs() {
+      const counts = {
+        all: allOrders.length,
+        received: allOrders.filter(o => o.order_status === 'received').length,
+        preparing: allOrders.filter(o => o.order_status === 'preparing').length,
+        ready: allOrders.filter(o => o.order_status === 'ready').length,
+        out_for_delivery: allOrders.filter(o => o.order_status === 'out_for_delivery').length,
+        delivered: allOrders.filter(o => o.order_status === 'delivered').length,
+        cancelled: allOrders.filter(o => o.order_status === 'cancelled').length
+      };
+      const stages = ['all', 'received', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
+      const stageLabels = {
+        all: '📋 All', received: '📥 Received', preparing: '🔥 Preparing', ready: '✅ Ready',
+        out_for_delivery: '🛵 Out', delivered: '🏠 Delivered', cancelled: '❌ Cancelled'
+      };
+      const container = document.getElementById('stageTabs');
+      container.innerHTML = stages.map(stage => `
+      <button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">
+        ${stageLabels[stage]} <span class="count">${counts[stage]}</span>
+      </button>
+    `).join('');
+      document.querySelectorAll('.stage-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentStage = btn.dataset.stage;
+          renderStageTabs();
+          renderOrders();
+        });
+      });
+    }
+
+    function getDeliveryHtml(order) {
+      const base = order.base_delivery_charge || 0;
+      const applied = order.applied_delivery_charge || 0;
+      if (applied > 0 && base > applied) {
+        return `<div class="summary-row"><span>Delivery</span><span><span style="text-decoration:line-through; color:#aaa;">₹ ${base.toFixed(2)}</span> <span style="color:#22c55e;">₹ ${applied.toFixed(2)}</span></span></div>`;
+      } else if (applied > 0) {
+        return `<div class="summary-row"><span>Delivery</span><span>₹ ${applied.toFixed(2)}</span></div>`;
+      } else if (base > 0 && applied === 0) {
+        return `<div class="summary-row"><span>Delivery</span><span><span style="text-decoration:line-through;">₹ ${base.toFixed(2)}</span> <span style="color:#22c55e;">Free</span></span></div>`;
+      }
+      return '';
+    }
+
+    function getFullAddress(order) {
+      let parts =[];
+      if (order.customer_address) parts.push(order.customer_address);
+      if (order.customer_area) parts.push(order.customer_area);
+      if (order.customer_sub_area) parts.push(order.customer_sub_area);
+      if (order.customer_pincode) parts.push(`PIN: ${order.customer_pincode}`);
+      return parts.join(', ') || 'Not provided';
+    }
+
+    function getNextStatus(currentStatus) {
+      const orderFlow = ['received', 'preparing', 'ready', 'out_for_delivery', 'delivered'];
+      const idx = orderFlow.indexOf(currentStatus);
+      if (idx !== -1 && idx < orderFlow.length - 1) return orderFlow[idx + 1];
+      return null;
+    }
+
+    function buildESCReceipt(order) {
+      const encoder = new TextEncoder();
+      let data =[];
+
+      function text(txt) {
+        data.push(...encoder.encode(txt + "\n"));
+      }
+
+      function bold(on = true) {
+        data.push(0x1B, 0x45, on ? 1 : 0);
+      }
+
+      function center(on = true) {
+        data.push(0x1B, 0x61, on ? 1 : 0);
+      }
+
+      function divider() {
+        text("--------------------------------");
+      }
+
+      const cartItems = parseCartItems(order);
+
+      data.push(0x1B, 0x40);
+
+      center(true);
+      bold(true);
+      text("MR CHEF");
+      bold(false);
+      text("Fine Dining Restaurant");
+      text("Authentic Indian Taste");
+
+      divider();
+
+      bold(true);
+      text(order.payment_method === "online" ? "PAID ONLINE" : "CASH ON DELIVERY");
+      bold(false);
+
+      divider();
+
+      center(false);
+      text("Order ID: " + (order.order_id || order.id));
+      text("Date: " + formatTimeSafe(order.created_at));
+
+      divider();
+
+      text("Customer: " + (order.customer_name || "-"));
+      text("Phone: " + (order.customer_phone || "-"));
+      text("Address: " + getFullAddress(order));
+
+      divider();
+
+      bold(true);
+      text("ITEMS");
+      bold(false);
+
+      if (!cartItems || cartItems.length === 0) {
+        text("No items found");
+      } else {
+        cartItems.forEach(item => {
+          const name = item.name || "Item";
+          const qty = item.quantity || 1;
+          const price = item.price || 0;
+          const total = qty * price;
+
+          text(name);
+          text(`${qty} x ₹ ${price} = ₹ ${total}`);
+          text("");
+        });
+      }
+
+      divider();
+
+      text("Subtotal: ₹ " + (order.subtotal || 0));
+
+      if (order.offer_discount > 0) {
+        text("Offer Discount: -₹ " + order.offer_discount);
+      }
+
+      if (order.coupon_discount > 0) {
+        text("Coupon Discount: -₹ " + order.coupon_discount);
+      }
+
+      const base = order.base_delivery_charge || 0;
+      const applied = order.applied_delivery_charge || 0;
+
+      if (base !== applied && base > 0) {
+        text(`Delivery: ₹ ${applied} (was ₹ ${base})`);
+      } else if (applied > 0) {
+        text("Delivery: ₹ " + applied);
+      } else if (base > 0) {
+        text("Delivery: FREE");
+      }
+
+      divider();
+
+      bold(true);
+      const label = order.payment_status === 'paid' ? "TOTAL PAID: ₹ " : "TOTAL: ₹ ";
+      text(label + (order.total_amount || 0));
+      bold(false);
+
+      if (order.cooking_instructions) {
+        divider();
+        bold(true);
+        text("COOKING INSTRUCTIONS:");
+        bold(false);
+        text(order.cooking_instructions);
+      }
+
+      divider();
+
+      center(true);
+      text("Thank You!");
+
+      data.push(...encoder.encode("\n\n\n"));
+
+      return new Uint8Array(data);
+    }
+    async function writeToPrinterInChunks(characteristic, data) {
+      const CHUNK_SIZE = 480;
+      let offset = 0;
+      while (offset < data.length) {
+        const chunk = data.slice(offset, offset + CHUNK_SIZE);
+        await characteristic.writeValue(chunk);
+        offset += CHUNK_SIZE;
+        if (offset < data.length) await new Promise(r => setTimeout(r, 100));
+      }
+      return true;
+    }
+
+    async function connectBluetoothPrinter() {
+      try {
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+          optionalServices: PRINTER_SERVICES
+        });
+        const server = await device.gatt.connect();
+        let service = null;
+        for (const serviceUuid of PRINTER_SERVICES) {
+          try {
+            service = await server.getPrimaryService(serviceUuid);
+            if (service) break;
+          } catch (e) { }
+        }
+        if (!service) throw new Error('Printer service not found');
+        let characteristic = null;
+        for (const charUuid of PRINT_CHARACTERISTICS) {
+          try {
+            characteristic = await service.getCharacteristic(charUuid);
+            if (characteristic) break;
+          } catch (e) { }
+        }
+        if (!characteristic) throw new Error('Print characteristic not found');
+        printerCharacteristic = characteristic;
+        device.addEventListener('gattserverdisconnected', () => {
+          printerCharacteristic = null;
+          showPopup('Printer disconnected', 'info', 'Bluetooth');
+        });
+        return true;
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    }
+
+    async function sendToPrinter(data) {
+      if (!printerCharacteristic) {
+        showPopup('Connecting to printer...', 'info', 'Please wait');
+        try {
+          await connectBluetoothPrinter();
+        } catch (err) {
+          showPopup(err.message || 'Failed to connect printer', 'error', 'Bluetooth Error');
+          return false;
+        }
+      }
+      try {
+        await writeToPrinterInChunks(printerCharacteristic, data);
+        return true;
+      } catch (err) {
+        console.error(err);
+        showPopup('Failed to print: ' + err.message, 'error', 'Print Error');
+        printerCharacteristic = null;
+        return false;
+      }
+    }
+
+    async function printOrder(order) {
+      const receiptData = buildESCReceipt(order);
+      showPopup('Printing... Please wait', 'info', 'Processing');
+      const success = await sendToPrinter(receiptData);
+      if (success) {
+        showPopup('Printed successfully!', 'success', 'Print');
+      }
+    }
+
+    async function downloadOrderAsImage(order) {
+      if (!order) return;
+      const cartItems = parseCartItems(order);
+      const tempDiv = document.createElement('div');
+      tempDiv.style.width = '350px';
+      tempDiv.style.minWidth = '350px';
+      tempDiv.style.backgroundColor = '#ffffff';
+      tempDiv.style.padding = '20px';
+      tempDiv.style.fontFamily = "'Inter', 'Segoe UI', sans-serif";
+      tempDiv.style.color = '#1e1e2f';
+      tempDiv.style.borderRadius = '16px';
+      let itemsHtml = '';
+      cartItems.forEach(item => {
+        const m = menuMap[item.id] || {};
+        const originalPrice = item.original_price || (m.price > item.price ? m.price : null);
+        const hasDiscount = originalPrice && originalPrice > item.price;
+        
+        const unitPriceDisplay = hasDiscount 
+          ? `<span style="text-decoration: line-through; color: #888; font-size: 0.8em;">₹ ${originalPrice.toFixed(2)}</span> <span style="color: #22c55e;">₹ ${item.price.toFixed(2)}</span>`
+          : `₹ ${item.price.toFixed(2)}`;
+
+        itemsHtml += `<div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column;">
+          <span style="font-weight: 600;">${escapeHtml(item.name)}</span>
+          <span style="font-size: 0.8em; color: #666; margin-top: 2px;">${item.quantity} x ${unitPriceDisplay}</span>
+        </div>
+        <div style="font-weight: 700;">₹ ${(item.price * item.quantity).toFixed(2)}</div>
+      </div>`;
+      });
+      const baseDelivery = order.base_delivery_charge || 0;
+      const appliedDelivery = order.applied_delivery_charge || 0;
+      tempDiv.innerHTML = `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="font-size: 24px; font-weight: bold; color: #22c55e;">MR CHEF</div>
+        <div style="font-size: 12px; color: #666;">Fine Dining Restaurant</div>
+        <div style="border-top: 2px dashed #ddd; margin: 12px 0;"></div>
+        <div style="font-size: 12px;">Order: ${order.order_id || '#' + order.id}</div>
+        <div style="font-size: 12px;">Date: ${formatTimeSafe(order.created_at)}</div>
+        <div style="margin-top: 8px; ${order.payment_method === 'online' ? 'color:#27ae60;' : order.payment_method === 'cod' ? 'color:#e67e22;' : 'color:#c0392b;'} font-weight: bold;">${order.payment_method === 'online' ? '✅ PAID ONLINE' : order.payment_method === 'cod' ? '💰 CASH ON DELIVERY' : '⚠️ UNPAID'}</div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <div><strong>Customer:</strong> ${escapeHtml(order.customer_name)}</div>
+        <div><strong>Phone:</strong> ${escapeHtml(order.customer_phone)}</div>
+        <div><strong>Address:</strong> ${escapeHtml(getFullAddress(order))}</div>
+      </div>
+      <div style="border-top: 1px solid #ddd;"></div>
+      <div style="margin: 12px 0;">${itemsHtml}</div>
+      ${order.cooking_instructions ? `<div style="background:#fff9c4; padding:10px; border-radius:8px; margin-bottom:12px; font-size:12px; border:1px solid #fbc02d;"><strong>Instructions:</strong> ${escapeHtml(order.cooking_instructions)}</div>` : ''}
+      <div style="border-top: 1px solid #ddd;"></div>
+      <div style="margin: 12px 0;">
+        <div style="display: flex; justify-content: space-between;"><span>Subtotal</span><span>₹ ${(order.subtotal || 0).toFixed(2)}</span></div>
+        ${order.offer_discount > 0 ? `<div style="display: flex; justify-content: space-between; color: #22c55e;"><span>Offer Discount</span><span>-₹ ${order.offer_discount.toFixed(2)}</span></div>` : ''}
+        ${order.coupon_discount > 0 ? `<div style="display: flex; justify-content: space-between; color: #22c55e;"><span>Coupon Discount</span><span>-₹ ${order.coupon_discount.toFixed(2)}</span></div>` : ''}
+        ${baseDelivery > 0 && baseDelivery !== appliedDelivery ? `<div style="display: flex; justify-content: space-between;"><span>Delivery (original)</span><span>₹ ${baseDelivery.toFixed(2)}</span></div><div style="display: flex; justify-content: space-between; color: #22c55e;"><span>Delivery (applied)</span><span>₹ ${appliedDelivery.toFixed(2)}</span></div>` : (appliedDelivery > 0 ? `<div style="display: flex; justify-content: space-between;"><span>Delivery</span><span>₹ ${appliedDelivery.toFixed(2)}</span></div>` : (baseDelivery > 0 ? `<div style="display: flex; justify-content: space-between;"><span>Delivery</span><span>Free (was ₹ ${baseDelivery.toFixed(2)})</span></div>` : ''))}
+        <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 8px; padding-top: 8px; border-top: 2px solid #22c55e;">
+          <span>${order.payment_status === 'paid' ? 'TOTAL PAID' : 'TOTAL PAYABLE'}</span><span style="color: #22c55e;">₹ ${(order.total_amount || 0).toFixed(2)}</span>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 20px; font-size: 11px; color: #aaa;">Thank you! Visit Again 🌟</div>
+    `;
+      document.body.appendChild(tempDiv);
+      await new Promise(r => requestAnimationFrame(r));
+      try {
+        const canvas = await html2canvas(tempDiv, { scale: 2.5, backgroundColor: '#ffffff', logging: false });
+        const link = document.createElement('a');
+        link.download = `receipt_${order.order_id || order.id}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showPopup('Image downloaded successfully!', 'success', 'Download');
+      } catch (err) {
+        console.error(err);
+        showPopup('Failed to generate image', 'error', 'Download Failed');
+      } finally {
+        document.body.removeChild(tempDiv);
+      }
+    }
+
+    function getWhatsAppMessage(order) {
+      const cartItems = parseCartItems(order);
+      let itemsText = '';
+      cartItems.forEach(item => {
+        const m = menuMap[item.id] || {};
+        const originalPrice = item.original_price || (m.price > item.price ? m.price : null);
+        const hasDiscount = originalPrice && originalPrice > item.price;
+        
+        if (hasDiscount) {
+          itemsText += `- ${escapeHtml(item.name)} (${item.quantity} x ₹ ${item.price} | was ~₹ ${originalPrice}~) = ₹ ${(item.price * item.quantity).toFixed(2)}\n`;
+        } else {
+          itemsText += `- ${escapeHtml(item.name)} (${item.quantity} x ₹ ${item.price}) = ₹ ${(item.price * item.quantity).toFixed(2)}\n`;
+        }
+      });
+      const baseDelivery = order.base_delivery_charge || 0;
+      const appliedDelivery = order.applied_delivery_charge || 0;
+      let deliveryText = '';
+      if (appliedDelivery > 0 && baseDelivery > appliedDelivery) {
+        deliveryText = `*Delivery:* ₹ ${appliedDelivery.toFixed(2)} (was ₹ ${baseDelivery.toFixed(2)})\n`;
+      } else if (appliedDelivery > 0) {
+        deliveryText = `*Delivery:* ₹ ${appliedDelivery.toFixed(2)}\n`;
+      } else if (baseDelivery > 0 && appliedDelivery === 0) {
+        deliveryText = `*Delivery:* Free (was ₹ ${baseDelivery.toFixed(2)})\n`;
+      }
+      const message = `🍽️ *MR CHEF - ORDER DETAILS* 🍽️\n\n` +
+        `*Order ID:* ${order.order_id || '#' + order.id}\n` +
+        `*Date:* ${formatTimeSafe(order.created_at)}\n` +
+        `*Customer:* ${escapeHtml(order.customer_name)}\n` +
+        `*Phone:* ${order.customer_phone}\n\n` +
+        `*Items:*\n${itemsText}\n` +
+        `*Subtotal:* ₹ ${(order.subtotal || 0).toFixed(2)}\n` +
+        `${order.offer_discount > 0 ? `*Offer Discount:* -₹ ${order.offer_discount.toFixed(2)}\n` : ''}` +
+        `${order.coupon_discount > 0 ? `*Coupon Discount:* -₹ ${order.coupon_discount.toFixed(2)}\n` : ''}` +
+        `${deliveryText}` +
+        `*${order.payment_status === 'paid' ? 'TOTAL PAID' : 'TOTAL PAYABLE'}:* ₹ ${(order.total_amount || 0).toFixed(2)}\n\n` +
+        `${order.cooking_instructions ? `*Instructions:* ${order.cooking_instructions}\n\n` : ''}` +
+        `Address: ${getFullAddress(order)}\n\n` +
+        `Thank you for ordering with MR CHEF! 🌟`;
+      return encodeURIComponent(message);
+    }
+
+    function shareWhatsApp(order) {
+      const phone = order.customer_phone?.replace(/[^0-9]/g, '');
+      if (!phone) {
+        showPopup('Customer phone number not available', 'error', 'WhatsApp');
+        return;
+      }
+      const message = getWhatsAppMessage(order);
+      window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    }
+
+    function renderOrders() {
+      const container = document.getElementById('ordersContainer');
+      let filteredOrders = currentStage === 'all' ? allOrders : allOrders.filter(o => o.order_status === currentStage);
+      filteredOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      if (!filteredOrders.length) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders in this stage</p></div>`;
+        return;
+      }
+      let html = '';
+      for (const order of filteredOrders) {
+        const cartItems = parseCartItems(order);
+        const orderStatus = order.order_status || 'received';
+        const paymentMethod = order.payment_method || (order.payment_status === 'paid' ? 'online' : 'cod');
+        const paymentText = paymentMethod === 'online' ? '✅ Paid Online' : '💰 Cash on Delivery';
+        let statusClass = '';
+        switch (orderStatus) {
+          case 'received': statusClass = 'received'; break;
+          case 'preparing': statusClass = 'preparing'; break;
+          case 'ready': statusClass = 'ready'; break;
+          case 'out_for_delivery': statusClass = 'out_for_delivery'; break;
+          case 'delivered': statusClass = 'delivered'; break;
+          case 'cancelled': statusClass = 'cancelled'; break;
+        }
+        const nextStatus = getNextStatus(orderStatus);
+        const isDelivered = orderStatus === 'delivered';
+        const isCancelled = orderStatus === 'cancelled';
+        let itemsHtml = '';
+        cartItems.forEach(item => {
+          const m = menuMap[item.id] || {};
+          const isVeg = item.is_veg !== undefined ? item.is_veg : m.is_veg;
+          const vegClass = isVeg !== undefined ? (isVeg ? 'veg' : 'non-veg') : '';
+          
+          const hasDiscount = (item.original_price && item.original_price > item.price) || (m.price && m.price > item.price);
+          const originalPrice = item.original_price || m.price;
+          
+          itemsHtml += `
+            <tr>
+              <td>
+                <div class="item-name-cell">
+                  <div class="item-img-container">
+                    <span class="item-fallback-text"><i class="fas fa-utensils" style="font-size:0.8rem; opacity:0.6;"></i></span>
+                    ${vegClass ? `<span class="veg-indicator ${vegClass}"></span>` : ''}
+                  </div>
+                  <div>
+                    <div style="font-weight: 600; color: #fff;">${escapeHtml(item.name)}</div>
+                    <div style="font-size: 0.7rem; color: #888; margin-top: 2px; font-weight: 500;">
+                      ₹ ${item.price}
+                      ${hasDiscount ? `<span style="text-decoration: line-through; margin-left: 4px; opacity: 0.6;">₹ ${originalPrice}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td style="vertical-align: middle;">x${item.quantity}</td>
+              <td style="vertical-align: middle; text-align: right; font-weight: 700; color: #22c55e;">
+                ₹ ${(item.price * item.quantity).toFixed(2)}
+              </td>
+            </tr>`;
+        });
+        const fullAddress = getFullAddress(order);
+        html += `
+        <div class="order-card" data-order-id="${order.id}">
+          <div class="order-card-header">
+            <button class="kebab-menu-btn" onclick="toggleKebab(event, ${order.id})"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="kebab-dropdown" id="kebab-${order.id}">
+              ${!isDelivered && !isCancelled && orderStatus !== 'cancelled' ? `<div class="kebab-item danger" onclick="cancelOrder(${order.id}); closeKebab(${order.id})"><i class='fas fa-times-circle'></i> Cancel Order</div>` : `<div class="kebab-item" style="color:#888; cursor:default;"><i class='fas fa-lock'></i> No Actions</div>`}
+            </div>
+            <div class="order-header-row"><span class="order-id">${escapeHtml(order.order_id || '#' + order.id)}</span><span class="status-badge ${statusClass}">${orderStatus.replace('_', ' ').toUpperCase()}</span></div>
+            <div class="order-header-row"><span class="order-date">${formatTimeSafe(order.created_at)}</span><span class="order-total">₹ ${(order.total_amount || 0).toFixed(2)}</span></div>
+          </div>
+          <div class="order-card-body">
+            <div class="customer-section">
+              <div class="customer-name">👤 ${escapeHtml(order.customer_name)}<span style="background:${paymentMethod === 'online' ? 'rgba(34,197,94,0.15)' : 'rgba(243,156,18,0.15)'}; color:${paymentMethod === 'online' ? '#22c55e' : '#f39c12'}; padding:2px 8px; border-radius:20px; font-size:0.65rem;">${paymentText}</span></div>
+              <div class="action-buttons">
+                <a href="tel:${escapeHtml(order.customer_phone)}" class="call-btn"><i class="fas fa-phone"></i> Call</a>
+                <button class="whatsapp-btn" onclick="shareWhatsAppWindow(${order.id})"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button class="download-btn" onclick="downloadOrderImage(${order.id})"><i class="fas fa-camera"></i> Receipt</button>
+              </div>
+              <div class="address-text">📍 ${escapeHtml(fullAddress)}</div>
+              <div class="address-detail">📞 ${escapeHtml(order.customer_phone || 'No phone')}</div>
+            </div>
+            <table class="items-table"><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+            ${order.cooking_instructions ? `<div style="background:rgba(255,152,0,0.1); border:1px dashed #ff9800; padding:12px; border-radius:12px; margin:12px 0; font-size:0.9rem; animation: pulseGlow 2s infinite;">
+              <span style="color:#ff9800; font-weight:800;"><i class="fas fa-exclamation-circle"></i> INSTRUCTIONS:</span> 
+              <span style="color:#fff;">${escapeHtml(order.cooking_instructions)}</span>
+            </div>` : ''}
+            <div class="order-summary">
+              <div class="summary-row"><span>Subtotal</span><span>₹ ${(order.subtotal || 0).toFixed(2)}</span></div>
+              ${order.offer_discount > 0 ? `<div class="summary-row"><span>Offer Discount</span><span class="offer-discount">- ₹ ${order.offer_discount.toFixed(2)}</span></div>` : ''}
+              ${order.coupon_discount > 0 ? `<div class="summary-row"><span>Coupon Discount</span><span class="offer-discount">- ₹ ${order.coupon_discount.toFixed(2)}</span></div>` : ''}
+              ${getDeliveryHtml(order)}
+              <div class="summary-row" style="font-weight:700; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px; margin-top:8px;"><span>${order.payment_status === 'paid' ? 'Total Paid' : 'Total Payable'}</span><span>₹ ${(order.total_amount || 0).toFixed(2)}</span></div>
+            </div>
+            <div class="stage-control">
+              ${!isDelivered && !isCancelled && nextStatus ? `
+              <div class="swipe-slider-wrap" data-order-id="${order.id}" data-next-status="${nextStatus}">
+                <div class="swipe-track-fill"></div>
+                <div class="swipe-thumb"><i class="fas fa-chevron-right"></i></div>
+                <div class="swipe-label">Swipe → ${nextStatus.replace('_', ' ').toUpperCase()}</div>
+              </div>` : ''}
+              <button class="print-btn" onclick="printOrderWindow(${order.id})"><i class="fas fa-print"></i> Print</button>
+            </div>
+          </div>
+        </div>
+      `;
+      }
+      container.innerHTML = html;
+      initSwipeSliders();
+    }
+
+    window.moveToNextStage = async (orderId, newStatus) => { await updateOrderStatus(orderId, newStatus); };
+    window.cancelOrder = async (orderId) => {
+      const result = await showConfirm('Cancel Order?', 'This action cannot be undone. Please select a reason for cancellation.', '🚫', true);
+      if (result.ok) await updateOrderStatus(orderId, 'cancelled', result.reason);
+    };
+    window.printOrderWindow = async (orderId) => { const order = allOrders.find(o => o.id === orderId); if (order) await printOrder(order); };
+    window.shareWhatsAppWindow = (orderId) => { const order = allOrders.find(o => o.id === orderId); if (order) shareWhatsApp(order); };
+    window.downloadOrderImage = (orderId) => { const order = allOrders.find(o => o.id === orderId); if (order) downloadOrderAsImage(order); };
+    window.toggleKebab = (e, orderId) => { e.stopPropagation(); document.querySelectorAll('.kebab-dropdown').forEach(d => { if (d.id !== 'kebab-' + orderId) d.classList.remove('open'); }); document.getElementById('kebab-' + orderId)?.classList.toggle('open'); };
+    window.closeKebab = (orderId) => { document.getElementById('kebab-' + orderId)?.classList.remove('open'); };
+    document.addEventListener('click', () => document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('open')));
+
+    function showConfirm(title, message, icon = '⚠️', showCancelReason = false) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const select = document.getElementById('cancelReasonSelect');
+        const otherInput = document.getElementById('cancelReasonOther');
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMsg').textContent = message;
+        document.getElementById('confirmIcon').textContent = icon;
+        
+        if (showCancelReason) {
+          select.style.display = 'block';
+          select.value = select.options[0].value;
+          otherInput.style.display = 'none';
+          otherInput.value = '';
+          
+          select.onchange = () => {
+            if (select.value === 'Other') {
+              otherInput.style.display = 'block';
+              otherInput.focus();
+            } else {
+              otherInput.style.display = 'none';
+            }
+          };
+        } else {
+          select.style.display = 'none';
+          otherInput.style.display = 'none';
+        }
+        
+        modal.classList.add('open');
+        const cleanup = () => {
+          modal.classList.remove('open');
+          select.style.display = 'none';
+          otherInput.style.display = 'none';
+        };
+        document.getElementById('confirmOkBtn').onclick = () => { 
+          cleanup(); 
+          if (showCancelReason) {
+            const finalReason = select.value === 'Other' ? (otherInput.value.trim() || 'Other reason') : select.value;
+            resolve({ ok: true, reason: finalReason });
+          } else {
+            resolve(true); 
+          }
+        };
+        document.getElementById('confirmCancelBtn').onclick = () => { 
+          cleanup(); 
+          if (showCancelReason) resolve({ ok: false });
+          else resolve(false); 
+        };
+      });
+    }
+
+    function initSwipeSliders() {
+      document.querySelectorAll('.swipe-slider-wrap').forEach(wrap => {
+        const thumb = wrap.querySelector('.swipe-thumb');
+        const fill = wrap.querySelector('.swipe-track-fill');
+        const orderId = parseInt(wrap.dataset.orderId);
+        const nextStatus = wrap.dataset.nextStatus;
+        let isDragging = false, startX = 0, currentX = 0;
+
+        const getMax = () => wrap.offsetWidth - thumb.offsetWidth - 6;
+
+        const setPos = (x) => {
+          const max = getMax();
+          x = Math.max(0, Math.min(x, max));
+          thumb.style.left = (3 + x) + 'px';
+          fill.style.width = (48 + x) + 'px';
+          thumb.style.transition = isDragging ? 'none' : 'left 0.3s ease';
+          fill.style.transition = isDragging ? 'none' : 'width 0.3s ease';
+          return x;
+        };
+
+        const onStart = (clientX) => {
+          isDragging = true;
+          startX = clientX - currentX;
+          thumb.style.transition = 'none';
+        };
+
+        const onMove = (clientX) => {
+          if (!isDragging) return;
+          currentX = setPos(clientX - startX);
+        };
+
+        const onEnd = async () => {
+          if (!isDragging) return;
+          isDragging = false;
+          const max = getMax();
+          if (currentX >= max * 0.85) {
+            // Confirmed!
+            thumb.innerHTML = '<i class="fas fa-check"></i>';
+            thumb.style.background = '#fff';
+            thumb.style.color = '#22c55e';
+            fill.style.width = wrap.offsetWidth + 'px';
+            fill.style.background = 'rgba(34,197,94,0.3)';
+            wrap.style.pointerEvents = 'none';
+            setTimeout(async () => {
+              await moveToNextStage(orderId, nextStatus);
+            }, 400);
+          } else {
+            // Snap back
+            currentX = 0;
+            setPos(0);
+          }
+        };
+
+        // Touch events
+        thumb.addEventListener('touchstart', e => { e.preventDefault(); onStart(e.touches[0].clientX); }, { passive: false });
+        document.addEventListener('touchmove', e => { if (isDragging) { e.preventDefault(); onMove(e.touches[0].clientX); } }, { passive: false });
+        document.addEventListener('touchend', onEnd);
+
+        // Mouse events
+        thumb.addEventListener('mousedown', e => onStart(e.clientX));
+        document.addEventListener('mousemove', e => { if (isDragging) onMove(e.clientX); });
+        document.addEventListener('mouseup', onEnd);
+      });
+    }
+
+    let isServerVerified = false;
+
+    // 🔥 FIX 2: PREVENT UNNECESSARY API SPAM 🔥
+    async function checkAdminAndLoad(providedSession = undefined) {
+      const authOverlay = document.getElementById('authOverlay');
+      const authCard = document.getElementById('authCard');
+
+      // Fast path: Check session storage to avoid blinking
+      if (sessionStorage.getItem('is_admin_verified') === 'true') {
+        authOverlay.style.display = 'none';
+      }
+
+      let session;
+      if (providedSession !== undefined) {
+        session = providedSession;
+      } else {
+        const { data } = await supabaseClient.auth.getSession();
+        session = data.session;
+      }
+
+      if (!session) {
+        sessionStorage.removeItem('is_admin_verified');
+        authOverlay.style.display = 'flex';
+        authCard.innerHTML = `
+          <div class="auth-icon"><i class="fas fa-lock"></i></div>
+          <div class="auth-title">Kitchen Login</div>
+          <div class="auth-desc">Please login with your authorized admin account to manage orders.</div>
+          <button class="google-login-btn" id="googleLoginBtn">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="G"> Sign in with Google
+          </button>
+        `;
+        document.getElementById('googleLoginBtn').onclick = () => {
+          supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.href }
+          });
+        };
+        return false;
+      }
+
+      currentUser = session.user;
+
+    // 🔥 OPTIMIZATION: Skip API call if already verified in this session to save serverless usage
+    if (isServerVerified) {
+      if (sessionStorage.getItem('is_admin_verified') === 'true') {
+        authOverlay.style.display = 'none';
+      }
+      return true;
+    }
+
+    try {
+      const res = await fetch('/api/is-admin', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+      const result = await res.json();
+      if (!result.admin) {
+        isServerVerified = false;
+        sessionStorage.removeItem('is_admin_verified');
+        authOverlay.style.display = 'flex';
+        authCard.innerHTML = `
+          <div class="auth-icon" style="color: #ef4444;"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="auth-title">Access Denied</div>
+          <div class="auth-desc">Your account does not have kitchen permissions.</div>
+          <button class="logout-btn" style="width: 100%; margin-top: 16px;" onclick="location.reload()">Refresh Page</button>
+          <button class="logout-btn" style="width: 100%; margin-top: 8px; background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2);" onclick="handleLogout()">Logout Account</button>
+        `;
+        return false;
+      }
+
+      // Success
+      isServerVerified = true;
+      sessionStorage.setItem('is_admin_verified', 'true');
+
+        // Check if we need interaction to unlock audio
+        if (authOverlay.style.display !== 'none') {
+          authCard.innerHTML = `
+            <div class="auth-icon" style="color: #22c55e;"><i class="fas fa-check-circle"></i></div>
+            <div class="auth-title">Verified!</div>
+            <div class="auth-desc">Admin access confirmed. Click below to start the dashboard and enable alerts.</div>
+            <button class="popup-btn" style="width: 100%;" id="enterKitchenBtn">Enter Kitchen</button>
+          `;
+          document.getElementById('enterKitchenBtn').onclick = () => {
+            authOverlay.style.display = 'none';
+            // Play a silent sound to unlock audio
+            if (sirenAudio) {
+              sirenAudio.play().then(() => {
+                sirenAudio.pause();
+                sirenAudio.currentTime = 0;
+              }).catch(e => console.log("Still blocked", e));
+            }
+          };
+        }
+        return true;
+      } catch (err) {
+        console.error(err);
+        if (sessionStorage.getItem('is_admin_verified') !== 'true') {
+          authOverlay.style.display = 'flex';
+          authCard.innerHTML = `
+            <div class="auth-icon" style="color: #ef4444;"><i class="fas fa-wifi"></i></div>
+            <div class="auth-title">Connection Error</div>
+            <button class="popup-btn" onclick="location.reload()">Retry</button>
+          `;
+        }
+        return sessionStorage.getItem('is_admin_verified') === 'true';
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => { await supabaseClient.auth.signOut(); location.reload(); });
+
+    let isInitializing = false;
+    let isSoundEnabled = false;
+    const sirenAudio = document.getElementById('sirenAudio');
+    const soundToggle = document.getElementById('soundToggle');
+
+    function updateSoundUI() {
+      if (isSoundEnabled) {
+        soundToggle.classList.remove('muted');
+        soundToggle.classList.add('active');
+        soundToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+      } else {
+        soundToggle.classList.remove('active');
+        soundToggle.classList.add('muted');
+        soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
+      }
+    }
+
+    function toggleSound() {
+      isSoundEnabled = !isSoundEnabled;
+      if (isSoundEnabled && sirenAudio) {
+        // Try to unlock audio context
+        sirenAudio.play().then(() => {
+          sirenAudio.pause();
+          sirenAudio.currentTime = 0;
+        }).catch(e => console.warn("Audio unlock failed:", e));
+      }
+      updateSoundUI();
+    }
+
+    soundToggle.addEventListener('click', toggleSound);
+
+    // Global interaction to unlock audio
+    document.addEventListener('click', () => {
+      if (!isSoundEnabled) {
+        isSoundEnabled = true;
+        updateSoundUI();
+        if (sirenAudio) {
+          sirenAudio.play().then(() => {
+            sirenAudio.pause();
+            sirenAudio.currentTime = 0;
+          }).catch(() => { });
+        }
+      }
+    }, { once: true });
+
+    function handleNewOrder(payload) {
+      console.log("New Order Received:", payload.new);
+      // Play Siren if enabled
+      if (sirenAudio && isSoundEnabled) {
+        sirenAudio.play().catch(err => console.warn("Siren play failed:", err));
+      }
+
+      // Show Alert Popup
+      showPopup(`A new order #${payload.new.order_id || payload.new.id} has been received!`, 'success', '🚨 NEW ORDER');
+
+      // Override closePopup behavior for siren
+      const originalClose = window.closePopup;
+      window.closePopup = () => {
+        if (sirenAudio) {
+          sirenAudio.pause();
+          sirenAudio.currentTime = 0;
+        }
+        originalClose();
+        // Restore original closePopup
+        window.closePopup = originalClose;
+      };
+
+      loadOrders();
+    }
+
+    let realtimeChannel = null;
+
+    async function init(providedSession = undefined) {
+      if (isInitializing) return;
+      isInitializing = true;
+      try {
+        const isAdmin = await checkAdminAndLoad(providedSession);
+        if (isAdmin) {
+          await fetchMenuMap();
+          await loadOrders();
+
+          // Remove old channel if exists to avoid duplicate subscription error
+          if (realtimeChannel) {
+            supabaseClient.removeChannel(realtimeChannel);
+            realtimeChannel = null;
+          }
+
+          realtimeChannel = supabaseClient.channel('orders-realtime')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
+              handleNewOrder(payload);
+            })
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, () => {
+              loadOrders();
+            })
+            .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' }, () => {
+              loadOrders();
+            });
+          realtimeChannel.subscribe();
+        }
+      } catch (e) {
+        console.error("Init error:", e);
+      } finally {
+        isInitializing = false;
+      }
+    }
+
+    // 🔥 FIX 3: PASS SESSION ON AUTH CHANGE 🔥
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      // Avoid calling init multiple times if just updating
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+        init(session);
+      }
+    });
+
+    // 🔥 FIX 4: SAFE TAB REFRESH ON VISIBILITY CHANGE 🔥
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        console.log('Tab visible: safely refreshing restaurant orders...');
+        if (sessionStorage.getItem('is_admin_verified') === 'true') {
+          // Refresh ONLY data safely
+          loadOrders();
+        }
+      }
+    });
+
+    async function initLocation() {
+      const locText = document.getElementById('userLocation');
+      const cached = localStorage.getItem('userLocationCache');
+      const now = Date.now();
+      if (cached) {
+        try {
+          const { text, timestamp } = JSON.parse(cached);
+          if (now - timestamp < 10 * 60 * 1000) { // 10 minutes
+            locText.innerText = text;
+            return;
+          }
+        } catch (e) { localStorage.removeItem('userLocationCache'); }
+      }
+
+      if (!navigator.geolocation) {
+        locText.innerText = "GPS Not Supported";
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const area = addr.suburb || addr.neighbourhood || addr.road || addr.city_district || "";
+            const city = addr.city || addr.town || addr.village || addr.state_district || "";
+            const pincode = addr.postcode || "";
+            let finalLoc = (area && city) ? (area.toLowerCase().trim() === city.toLowerCase().trim() ? area : `${area}, ${city}`) : (area || city || "Location Found");
+            const displayText = pincode ? `${finalLoc} - ${pincode}` : finalLoc;
+            locText.innerText = displayText;
+            localStorage.setItem('userLocationCache', JSON.stringify({ text: displayText, timestamp: Date.now() }));
+          } else {
+            locText.innerText = "Location Found";
+          }
+        } catch (err) {
+          locText.innerText = "Location Found";
+        }
+      }, (error) => {
+        locText.innerText = "Location Access Denied";
+      }, { enableHighAccuracy: true, timeout: 5000 });
+    }
+
+    init();
+    initLocation();
+  </script>
+</body>
+
+</html>
