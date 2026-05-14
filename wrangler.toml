@@ -1,0 +1,6 @@
+name = "restaurant-app"
+compatibility_date = "2024-05-14"
+compatibility_flags = [ "nodejs_compat" ]
+
+[vars]
+# Add any non-secret variables here if needed
