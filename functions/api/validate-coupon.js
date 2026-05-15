@@ -41,7 +41,7 @@ export async function onRequest(context) {
     if (now < validFrom || (coupon.valid_to && now > validTo)) return new Response(JSON.stringify({ valid: false, message: 'Coupon expired' }), { status: 200, headers: corsHeaders });
     if (!coupon.is_active) return new Response(JSON.stringify({ valid: false, message: 'Coupon not active' }), { status: 200, headers: corsHeaders });
     if (subtotal < coupon.min_cart_value) return new Response(JSON.stringify({ valid: false, message: `Minimum order ₹${coupon.min_cart_value}` }), { status: 200, headers: corsHeaders });
-    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return new Response(JSON.stringify({ valid: false, message: 'Usage limit reached' }), { status: 200, headers: corsHeaders });
+    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) return new Response(JSON.stringify({ valid: false, message: 'Usage limit reached' }), { status: 200, headers: corsHeaders });
     
     if (userId && coupon.per_user_limit > 0) {
       const { count, error: countErr } = await supabase
