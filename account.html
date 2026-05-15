@@ -926,7 +926,7 @@ button:active {
         
         let currentCart = [];
         try {
-          const saved = localStorage.getItem('mrchef_cart');
+          const saved = localStorage.getItem('cart');
           if(saved) currentCart = JSON.parse(saved);
         } catch(e){}
         
@@ -936,7 +936,7 @@ button:active {
           else currentCart.push({...item});
         });
         
-        localStorage.setItem('mrchef_cart', JSON.stringify(currentCart));
+        localStorage.setItem('cart', JSON.stringify(currentCart));
         
         const btn = e.currentTarget;
         btn.innerHTML = '<i class="fas fa-check"></i> Added';

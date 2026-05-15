@@ -241,7 +241,7 @@
       flex-wrap: wrap;
     }
 
-    .filter-bar input {
+    .filter-bar input, .filter-bar select {
       background: #1e1e1e;
       border: 1px solid #333;
       border-radius: 30px;
@@ -249,10 +249,15 @@
       color: white;
       flex: 1;
       min-width: 150px;
+      outline: none;
     }
 
-    .filter-bar input:focus {
-      outline: none;
+    .filter-bar select option {
+      background: #1e1e1e;
+      color: white;
+    }
+
+    .filter-bar input:focus, .filter-bar select:focus {
       border-color: #22c55e;
     }
 
@@ -424,40 +429,65 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2500;
+      animation: modalFadeIn 0.3s ease;
     }
+    @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .modal-content {
-      background: #1e1e1e;
-      border-radius: 28px;
-      width: 90%;
+      background: rgba(18, 18, 18, 0.98);
+      border-radius: 32px;
+      width: 92%;
       max-width: 550px;
-      padding: 24px;
-      border: 1px solid #22c55e;
-      max-height: 90vh;
+      padding: 30px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      max-height: 85vh;
       overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      scrollbar-width: thin;
+    }
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(40px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .modal-header {
-      font-size: 1.3rem;
-      margin-bottom: 16px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      color: #fff;
     }
 
     input,
     textarea,
     select {
       width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      background: #2a2a2a;
-      border: 1px solid #444;
-      border-radius: 16px;
+      padding: 12px 16px;
+      margin: 8px 0;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
       color: white;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.05);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
     }
 
     input[type="checkbox"],
@@ -573,6 +603,138 @@
       margin-bottom: 30px;
       line-height: 1.6;
     }
+
+    /* Custom Confirm Modal Specifics */
+    #confirmModal {
+      z-index: 4000 !important;
+    }
+    #confirmModal .modal-content {
+      max-width: 400px;
+      text-align: center;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    #confirmModal .confirm-icon {
+      font-size: 3.5rem;
+      color: #ef4444;
+      margin-bottom: 20px;
+      animation: pulseRed 2s infinite;
+    }
+    @keyframes pulseRed {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    #confirmModal .confirm-btns {
+      display: flex;
+      gap: 12px;
+      margin-top: 25px;
+    }
+    #confirmModal .confirm-btns button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: 0.2s;
+    }
+    #confirmModal .btn-cancel {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    #confirmModal .btn-confirm {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+    #confirmModal .btn-confirm:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+    }
+
+    /* Menu Filter Styles */
+    .menu-filter-container {
+      padding: 15px 20px;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      margin: -15px -20px 20px -20px;
+    }
+    .category-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-top: 12px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 5px;
+    }
+    .category-scroll::-webkit-scrollbar { display: none; }
+    .category-chip {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50px;
+      font-size: 0.8rem;
+      color: #aaa;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: 0.2s all;
+    }
+    .category-chip.active {
+      background: #22c55e;
+      color: #000;
+      border-color: #22c55e;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+    .menu-search-wrapper {
+      position: relative;
+    }
+    .menu-search-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .menu-search-input {
+      padding-left: 40px !important;
+      margin: 0 !important;
+      background: rgba(255,255,255,0.03) !important;
+      border-radius: 12px !important;
+    }
+
+    /* Veg/Non-Veg Indicators (Matching Index) */
+    .veg-indicator {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid;
+      border-radius: 2px;
+      position: relative;
+      flex-shrink: 0;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .veg-indicator::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .veg-indicator.veg { border-color: #22c55e; }
+    .veg-indicator.veg::after { background: #22c55e; }
+    .veg-indicator.non-veg { border-color: #ef4444; }
+    .veg-indicator.non-veg::after { background: #ef4444; }
 
     .google-login-btn {
       background: #fff;
@@ -815,6 +977,15 @@
 
   <!-- Menu Tab -->
   <div id="menuTab" class="tab-content">
+    <div class="menu-filter-container">
+      <div class="menu-search-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" id="menuSearchInput" class="menu-search-input" placeholder="Search dish name or price...">
+      </div>
+      <div id="categoryChips" class="category-scroll">
+        <!-- Chips injected by JS -->
+      </div>
+    </div>
     <div id="menuList" class="list-view"></div>
     <button id="addMenuItemFab" class="fab-add">+</button>
   </div>
@@ -828,8 +999,12 @@
   <!-- Delivery Zones Tab -->
   <div id="deliveryzonesTab" class="tab-content">
     <div class="filter-bar">
-      <input type="text" id="zoneFilterPincode" placeholder="Filter by Pincode...">
-      <input type="text" id="zoneFilterArea" placeholder="Filter by Area...">
+      <select id="zoneFilterPincode">
+        <option value="">All Pincodes</option>
+      </select>
+      <select id="zoneFilterArea">
+        <option value="">All Areas</option>
+      </select>
     </div>
     <div id="deliveryZonesList" class="list-view"></div>
     <button id="addZoneBtn" class="fab-add">+</button>
@@ -846,7 +1021,7 @@
   <!-- Ticket Reply Modal -->
   <div id="ticketReplyModal" class="modal">
     <div class="modal-content"
-      style="height: 95vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 20px;">
+      style="height: 90vh; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
       <div class="modal-header"
         style="padding: 12px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
         <div id="ticketHeaderInfo" style="font-size: 0.9rem; font-weight: bold; color: #22c55e;">Ticket Details</div>
@@ -959,9 +1134,27 @@
         <span id="closeZoneModal" style="cursor:pointer">&times;</span>
       </div>
       <div id="zoneModalBody">
-        <input type="text" id="zonePincode" placeholder="Pincode" required>
-        <input type="text" id="zoneArea" placeholder="Area (e.g., Sector 15)" required>
-        <input type="text" id="zoneSubArea" placeholder="Sub‑Area (optional)">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+          <div style="flex:1;">
+            <input type="text" id="zonePincode" placeholder="Pincode" style="margin-bottom:0;" required>
+          </div>
+          <button type="button" onclick="detectPincode()" id="detectPinBtn" style="padding:12px; background:rgba(34,197,94,0.1); color:#22c55e; border:1px solid rgba(34,197,94,0.2); border-radius:12px; cursor:pointer;" title="Detect Current Pincode">
+            <i class="fas fa-location-arrow"></i> Detect
+          </button>
+        </div>
+        <div class="helper-text" style="margin-top:-10px; margin-bottom:15px;">Enter 6-digit pincode or use Detect</div>
+        
+        <div id="existingAreaWrapper" style="display:none; margin-bottom:10px;">
+          <select id="zoneAreaSelect" style="width:100%; padding:12px; border-radius:12px; background:#1e1e1e; color:white; border:1px solid #333; margin-bottom:5px;"></select>
+          <div class="helper-text">Select existing area or "Add New"</div>
+        </div>
+
+        <div id="newAreaWrapper">
+          <input type="text" id="zoneArea" placeholder="Area Name (e.g., Sector 15)" required>
+          <div class="helper-text">Type the area name</div>
+        </div>
+
+        <input type="text" id="zoneSubArea" placeholder="Sub‑Area (optional)"><div class="helper-text">Building, Block, or Landmark</div>
         <input type="number" id="zoneBaseCharge" placeholder="Base Delivery Charge (₹)" step="0.01" required>
         <input type="number" id="zoneOfferCharge" placeholder="Offer Charge (₹) – leave empty for no offer" step="0.01">
         <input type="number" id="zoneMinOrder" placeholder="Min order for offer (₹)" value="0" step="0.01">
@@ -984,6 +1177,19 @@
         </div>
         <label><input type="checkbox" id="zoneIsActive" checked> Active</label>
         <button id="saveZoneBtn" class="save-btn" style="margin-top: 16px;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Confirm Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <div class="confirm-icon"><i class="fas fa-exclamation-circle"></i></div>
+      <h2 style="margin-bottom:10px;">Are you sure?</h2>
+      <p id="confirmMessage" style="color:#aaa; line-height:1.5;"></p>
+      <div class="confirm-btns">
+        <button id="confirmCancelBtn" class="btn-cancel">Cancel</button>
+        <button id="confirmConfirmBtn" class="btn-confirm">Yes, Delete</button>
       </div>
     </div>
   </div>
@@ -1014,6 +1220,30 @@
     });
 
     let currentUser = null;
+
+    // Modern Confirm Function
+    window.customConfirm = (message) => {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const msgEl = document.getElementById('confirmMessage');
+        const confirmBtn = document.getElementById('confirmConfirmBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+        
+        msgEl.innerText = message;
+        modal.style.display = 'flex';
+        
+        const cleanup = (val) => {
+          modal.style.display = 'none';
+          confirmBtn.onclick = null;
+          cancelBtn.onclick = null;
+          resolve(val);
+        };
+        
+        confirmBtn.onclick = () => cleanup(true);
+        cancelBtn.onclick = () => cleanup(false);
+        window.onclick = (e) => { if (e.target === modal) cleanup(false); };
+      });
+    };
 
     window.handleLogout = async () => {
       await supabaseClient.auth.signOut();
@@ -1226,48 +1456,182 @@
     }
     window.editBanner = async (id) => {
       const { data: b } = await supabaseClient.from('banners').select('*').eq('id', id).single();
+      if (!b) return;
       openModal('Edit Banner', `
       <input id="title" placeholder="Title" value="${escapeHtml(b.title || '')}"><div class="helper-text">Banner title (optional)</div>
       <input id="link_url" placeholder="Link URL (optional)" value="${b.link_url || ''}"><div class="helper-text">Where the banner should link to</div>
-      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload new image (leave empty to keep current)</div>
+      
+      <div id="imagePreviewContainer" style="margin:10px 0; display:${b.image_url ? 'flex' : 'none'}; align-items:center; gap:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
+        <img id="currentImagePreview" src="${b.image_url || ''}" style="width:100px; height:40px; border-radius:6px; object-fit:cover; border:1px solid #444;">
+        <div style="font-size:0.8rem; color:#aaa;">Banner Preview</div>
+      </div>
+      
+      <input id="image_url_display" value="${b.image_url || ''}" readonly><div class="helper-text">Image URL (Upload to update)</div>
+      <button type="button" id="removeImageBtn" class="danger" style="padding:6px 12px; font-size:0.8rem; margin-bottom:15px; display:${b.image_url ? 'inline-block' : 'none'};">🗑️ Remove Banner Image</button>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="file" id="imageInput" accept="image/*" style="margin:0; flex:1;">
+        <button type="button" id="startUploadBtn" style="background:#22c55e; color:black; padding:8px 16px; border-radius:8px; font-weight:900; display:none; border:none;">☁️ Upload</button>
+      </div>
+      <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-top:5px; display:none; font-weight:bold;"></div>
+
       <label><input type="checkbox" id="is_active" ${b.is_active ? 'checked' : ''}> Active</label>
       <input id="display_order" type="number" placeholder="Display order" value="${b.display_order || 0}"><div class="helper-text">Lower numbers appear first</div>
     `, async () => {
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput?.files[0];
+        const urlDisplay = document.getElementById('image_url_display');
+        let image_url = urlDisplay.value || null;
+
+        // 🔥 AUTO-UPLOAD
+        if (file && (!image_url || !image_url.includes('supabase.co'))) {
+          showToast('Uploading banner...', false);
+          try {
+            image_url = await uploadImage(file, 'banners');
+          } catch(e) { throw new Error('Banner upload failed: ' + e.message); }
+        }
+
         const title = document.getElementById('title').value;
         const link_url = document.getElementById('link_url').value;
         const is_active = document.getElementById('is_active').checked;
         const display_order = parseInt(document.getElementById('display_order').value);
-        const file = document.getElementById('image').files[0];
-        let image_url = b.image_url;
-        if (file) {
-          if (image_url) await supabaseClient.storage.from('banners').remove([image_url.split('/').pop()]);
-          image_url = await uploadImage(file, 'banners');
-        }
+
         await supabaseClient.from('banners').update({ title, link_url, image_url, is_active, display_order }).eq('id', id);
         showToast('Banner updated');
         loadBanners();
       });
+
+      const imageInput = document.getElementById('imageInput');
+      const startUploadBtn = document.getElementById('startUploadBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const urlDisplay = document.getElementById('image_url_display');
+      const previewImg = document.getElementById('currentImagePreview');
+      const previewContainer = document.getElementById('imagePreviewContainer');
+      const removeBtn = document.getElementById('removeImageBtn');
+
+      let currentUrl = b.image_url;
+
+      imageInput.onchange = () => {
+        if (imageInput.files[0]) startUploadBtn.style.display = 'inline-block';
+        else startUploadBtn.style.display = 'none';
+      };
+
+      startUploadBtn.onclick = async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+        startUploadBtn.disabled = true;
+        uploadStatus.style.display = 'block';
+        uploadStatus.innerText = '⏳ Uploading...';
+        try {
+          if (currentUrl) {
+            try { await supabaseClient.storage.from('banners').remove([currentUrl.split('/').pop()]); } catch(e){}
+          }
+          const newUrl = await uploadImage(file, 'banners');
+          currentUrl = newUrl;
+          urlDisplay.value = newUrl;
+          previewImg.src = newUrl;
+          previewContainer.style.display = 'flex';
+          removeBtn.style.display = 'inline-block';
+          uploadStatus.innerText = '✅ Uploaded!';
+          startUploadBtn.style.display = 'none';
+        } catch (e) {
+          uploadStatus.innerText = '❌ Failed';
+        } finally {
+          startUploadBtn.disabled = false;
+        }
+      };
+
+      if (removeBtn) {
+        removeBtn.onclick = async () => {
+          if (await customConfirm('Delete banner image?')) {
+            if (currentUrl) {
+              try { await supabaseClient.storage.from('banners').remove([currentUrl.split('/').pop()]); } catch(e){}
+            }
+            currentUrl = null;
+            urlDisplay.value = '';
+            previewContainer.style.display = 'none';
+            removeBtn.style.display = 'none';
+          }
+        };
+      }
     };
-    window.deleteBanner = async (id) => { if (confirm('Delete this banner?')) { await supabaseClient.from('banners').delete().eq('id', id); showToast('Banner deleted'); loadBanners(); } };
+    window.deleteBanner = async (id) => { if (await customConfirm('Delete this banner?')) { await supabaseClient.from('banners').delete().eq('id', id); showToast('Banner deleted'); loadBanners(); } };
     document.getElementById('addBannerFab').onclick = () => {
       openModal('Add Banner', `
       <input id="title" placeholder="Title" required><div class="helper-text">Banner title</div>
       <input id="link_url" placeholder="Link URL (optional)"><div class="helper-text">Where the banner should link to</div>
-      <input type="file" id="image" accept="image/*" required><div class="helper-text">Upload banner image (recommended 1200x300)</div>
+      
+      <div id="imagePreviewContainer" style="margin:10px 0; display:none; align-items:center; gap:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
+        <img id="currentImagePreview" src="" style="width:100px; height:40px; border-radius:6px; object-fit:cover; border:1px solid #444;">
+        <div style="font-size:0.8rem; color:#aaa;">Banner Preview</div>
+      </div>
+      
+      <input id="image_url_display" value="" readonly><div class="helper-text">Image URL (Upload to generate)</div>
+      
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <input type="file" id="imageInput" accept="image/*" style="margin:0; flex:1;">
+        <button type="button" id="startUploadBtn" style="background:#22c55e; color:black; padding:8px 16px; border-radius:8px; font-weight:900; display:none; border:none; cursor:pointer;">☁️ Upload</button>
+      </div>
+      <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-bottom:10px; display:none; font-weight:bold;"></div>
+
       <label><input type="checkbox" id="is_active" checked> Active</label>
       <input id="display_order" type="number" placeholder="Display order" value="0"><div class="helper-text">Lower numbers appear first</div>
     `, async () => {
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput?.files[0];
+        const urlDisplay = document.getElementById('image_url_display');
+        let image_url = urlDisplay.value || null;
+
+        // 🔥 AUTO-UPLOAD
+        if (file && (!image_url || !image_url.includes('supabase.co'))) {
+          showToast('Uploading banner...', false);
+          try {
+            image_url = await uploadImage(file, 'banners');
+          } catch(e) { throw new Error('Banner upload failed: ' + e.message); }
+        }
+
         const title = document.getElementById('title').value;
         const link_url = document.getElementById('link_url').value;
         const is_active = document.getElementById('is_active').checked;
         const display_order = parseInt(document.getElementById('display_order').value);
-        const file = document.getElementById('image').files[0];
-        if (!file) throw new Error('Image required');
-        const image_url = await uploadImage(file, 'banners');
+        if (!image_url) throw new Error('Image required');
+
         await supabaseClient.from('banners').insert([{ title, link_url, image_url, is_active, display_order }]);
         showToast('Banner added');
         loadBanners();
       });
+
+      const imageInput = document.getElementById('imageInput');
+      const startUploadBtn = document.getElementById('startUploadBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const urlDisplay = document.getElementById('image_url_display');
+      const previewImg = document.getElementById('currentImagePreview');
+      const previewContainer = document.getElementById('imagePreviewContainer');
+
+      imageInput.onchange = () => {
+        if (imageInput.files[0]) startUploadBtn.style.display = 'inline-block';
+        else startUploadBtn.style.display = 'none';
+      };
+
+      startUploadBtn.onclick = async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+        startUploadBtn.disabled = true;
+        uploadStatus.style.display = 'block';
+        uploadStatus.innerText = '⏳ Uploading...';
+        try {
+          const newUrl = await uploadImage(file, 'banners');
+          urlDisplay.value = newUrl;
+          previewImg.src = newUrl;
+          previewContainer.style.display = 'flex';
+          uploadStatus.innerText = '✅ Uploaded!';
+          startUploadBtn.style.display = 'none';
+        } catch (e) {
+          uploadStatus.innerText = '❌ Failed';
+        } finally {
+          startUploadBtn.disabled = false;
+        }
+      };
     };
 
     // ========== CATEGORIES ==========
@@ -1292,64 +1656,260 @@
     }
     window.editCategory = async (id) => {
       const { data: c } = await supabaseClient.from('categories').select('*').eq('id', id).single();
+      if (!c) return;
       openModal('Edit Category', `
       <input id="name" placeholder="Name" value="${escapeHtml(c.name)}"><div class="helper-text">Category name</div>
-      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload new image (optional)</div>
+      
+      <div id="imagePreviewContainer" style="margin:10px 0; display:${c.image_url ? 'flex' : 'none'}; align-items:center; gap:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
+        <img id="currentImagePreview" src="${c.image_url || ''}" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid #444;">
+        <div style="font-size:0.8rem; color:#aaa;">Category Preview</div>
+      </div>
+      
+      <input id="image_url_display" value="${c.image_url || ''}" readonly><div class="helper-text">Image URL (Upload to update)</div>
+      <button type="button" id="removeImageBtn" class="danger" style="padding:6px 12px; font-size:0.8rem; margin-bottom:15px; display:${c.image_url ? 'inline-block' : 'none'};">🗑️ Remove Category Image</button>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="file" id="imageInput" accept="image/*" style="margin:0; flex:1;">
+        <button type="button" id="startUploadBtn" style="background:#22c55e; color:black; padding:8px 16px; border-radius:8px; font-weight:900; display:none; border:none;">☁️ Upload</button>
+      </div>
+      <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-top:5px; display:none; font-weight:bold;"></div>
+
       <input id="display_order" type="number" placeholder="Display order" value="${c.display_order || 0}"><div class="helper-text">Lower numbers appear first</div>
     `, async () => {
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput?.files[0];
+        const urlDisplay = document.getElementById('image_url_display');
+        let image_url = urlDisplay.value || null;
+
+        // 🔥 AUTO-UPLOAD
+        if (file && (!image_url || !image_url.includes('supabase.co'))) {
+          showToast('Uploading category...', false);
+          try {
+            image_url = await uploadImage(file, 'category-images');
+          } catch(e) { throw new Error('Category upload failed: ' + e.message); }
+        }
+
         const name = document.getElementById('name').value;
         const display_order = parseInt(document.getElementById('display_order').value);
-        const file = document.getElementById('image').files[0];
-        let image_url = c.image_url;
-        if (file) {
-          if (image_url) await supabaseClient.storage.from('category-images').remove([image_url.split('/').pop()]);
-          image_url = await uploadImage(file, 'category-images');
-        }
+
         await supabaseClient.from('categories').update({ name, image_url, display_order }).eq('id', id);
         showToast('Category updated');
         loadCategories();
       });
+
+      const imageInput = document.getElementById('imageInput');
+      const startUploadBtn = document.getElementById('startUploadBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const urlDisplay = document.getElementById('image_url_display');
+      const previewImg = document.getElementById('currentImagePreview');
+      const previewContainer = document.getElementById('imagePreviewContainer');
+      const removeBtn = document.getElementById('removeImageBtn');
+
+      let currentUrl = c.image_url;
+
+      imageInput.onchange = () => {
+        if (imageInput.files[0]) startUploadBtn.style.display = 'inline-block';
+        else startUploadBtn.style.display = 'none';
+      };
+
+      startUploadBtn.onclick = async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+        startUploadBtn.disabled = true;
+        uploadStatus.style.display = 'block';
+        uploadStatus.innerText = '⏳ Uploading...';
+        try {
+          if (currentUrl) {
+            try { await supabaseClient.storage.from('category-images').remove([currentUrl.split('/').pop()]); } catch(e){}
+          }
+          const newUrl = await uploadImage(file, 'category-images');
+          currentUrl = newUrl;
+          urlDisplay.value = newUrl;
+          previewImg.src = newUrl;
+          previewContainer.style.display = 'flex';
+          removeBtn.style.display = 'inline-block';
+          uploadStatus.innerText = '✅ Uploaded!';
+          startUploadBtn.style.display = 'none';
+        } catch (e) {
+          uploadStatus.innerText = '❌ Failed';
+        } finally {
+          startUploadBtn.disabled = false;
+        }
+      };
+
+      if (removeBtn) {
+        removeBtn.onclick = async () => {
+          if (await customConfirm('Delete category image?')) {
+            if (currentUrl) {
+              try { await supabaseClient.storage.from('category-images').remove([currentUrl.split('/').pop()]); } catch(e){}
+            }
+            currentUrl = null;
+            urlDisplay.value = '';
+            previewContainer.style.display = 'none';
+            removeBtn.style.display = 'none';
+          }
+        };
+      }
     };
-    window.deleteCategory = async (id) => { if (confirm('Delete this category?')) { await supabaseClient.from('categories').delete().eq('id', id); showToast('Category deleted'); loadCategories(); } };
+    window.deleteCategory = async (id) => { if (await customConfirm('Delete this category?')) { await supabaseClient.from('categories').delete().eq('id', id); showToast('Category deleted'); loadCategories(); } };
     document.getElementById('addCategoryFab').onclick = () => {
       openModal('Add Category', `
       <input id="name" placeholder="Name" required><div class="helper-text">Category name</div>
-      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload category image (optional, square recommended)</div>
+      
+      <div id="imagePreviewContainer" style="margin:10px 0; display:none; align-items:center; gap:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
+        <img id="currentImagePreview" src="" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid #444;">
+        <div style="font-size:0.8rem; color:#aaa;">New Category Preview</div>
+      </div>
+      
+      <input id="image_url_display" value="" readonly><div class="helper-text">Image URL (Upload to generate)</div>
+      
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <input type="file" id="imageInput" accept="image/*" style="margin:0; flex:1;">
+        <button type="button" id="startUploadBtn" style="background:#22c55e; color:black; padding:8px 16px; border-radius:8px; font-weight:900; display:none; border:none; cursor:pointer;">☁️ Upload</button>
+      </div>
+      <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-bottom:10px; display:none; font-weight:bold;"></div>
+
       <input id="display_order" type="number" placeholder="Display order" value="0"><div class="helper-text">Lower numbers appear first</div>
     `, async () => {
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput?.files[0];
+        const urlDisplay = document.getElementById('image_url_display');
+        let image_url = urlDisplay.value || null;
+
+        // 🔥 AUTO-UPLOAD
+        if (file && (!image_url || !image_url.includes('supabase.co'))) {
+          showToast('Uploading category...', false);
+          try {
+            image_url = await uploadImage(file, 'category-images');
+          } catch(e) { throw new Error('Category upload failed: ' + e.message); }
+        }
+
         const name = document.getElementById('name').value;
         const display_order = parseInt(document.getElementById('display_order').value);
-        const file = document.getElementById('image').files[0];
-        let image_url = null;
-        if (file) image_url = await uploadImage(file, 'category-images');
+
         await supabaseClient.from('categories').insert([{ name, image_url, display_order }]);
         showToast('Category added');
         loadCategories();
       });
+
+      const imageInput = document.getElementById('imageInput');
+      const startUploadBtn = document.getElementById('startUploadBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const urlDisplay = document.getElementById('image_url_display');
+      const previewImg = document.getElementById('currentImagePreview');
+      const previewContainer = document.getElementById('imagePreviewContainer');
+
+      imageInput.onchange = () => {
+        if (imageInput.files[0]) startUploadBtn.style.display = 'inline-block';
+        else startUploadBtn.style.display = 'none';
+      };
+
+      startUploadBtn.onclick = async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+        startUploadBtn.disabled = true;
+        uploadStatus.style.display = 'block';
+        uploadStatus.innerText = '⏳ Uploading...';
+        try {
+          const newUrl = await uploadImage(file, 'category-images');
+          urlDisplay.value = newUrl;
+          previewImg.src = newUrl;
+          previewContainer.style.display = 'flex';
+          uploadStatus.innerText = '✅ Uploaded!';
+          startUploadBtn.style.display = 'none';
+        } catch (e) {
+          uploadStatus.innerText = '❌ Failed';
+        } finally {
+          startUploadBtn.disabled = false;
+        }
+      };
     };
 
     // ========== MENU ==========
+    let allMenuItems = [];
+    let currentCategoryFilter = 'all';
+
     async function loadMenu() {
       showSkeleton('menuList', 4);
       const { data: menuData, error: menuError } = await supabaseClient.from('menu').select('*').order('id');
       if (menuError) { document.getElementById('menuList').innerHTML = '<p>Error loading menu</p>'; return; }
-      if (!menuData?.length) { document.getElementById('menuList').innerHTML = '<p>No menu items. Click + to add.</p>'; return; }
-      const { data: categories } = await supabaseClient.from('categories').select('id, name');
-      const categoryMap = new Map(); categories?.forEach(c => categoryMap.set(c.id, c.name));
-      const fallbackImg = 'https://placehold.co/50x50/f97316/white?text=Mr';
+      allMenuItems = menuData || [];
+      
+      const { data: categories } = await supabaseClient.from('categories').select('id, name').order('display_order');
+      renderCategoryChips(categories || []);
+      filterAndRenderMenu();
+    }
+
+    function renderCategoryChips(categories) {
+      const container = document.getElementById('categoryChips');
+      if (!container) return;
+      
+      let html = `<div class="category-chip ${currentCategoryFilter === 'all' ? 'active' : ''}" onclick="setMenuCategoryFilter('all')">All Items</div>`;
+      html += categories.map(c => `
+        <div class="category-chip ${currentCategoryFilter == c.id ? 'active' : ''}" onclick="setMenuCategoryFilter(${c.id})">${escapeHtml(c.name)}</div>
+      `).join('');
+      
+      container.innerHTML = html;
+
+      // 🔥 Enable Mouse Wheel Horizontal Scroll
+      container.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaY;
+        }
+      });
+    }
+
+    window.setMenuCategoryFilter = (catId) => {
+      currentCategoryFilter = catId;
+      const categories = Array.from(document.querySelectorAll('.category-chip'));
+      // Update UI immediately for speed
+      document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+      event.target.classList.add('active');
+      filterAndRenderMenu();
+    };
+
+    document.getElementById('menuSearchInput')?.addEventListener('input', () => {
+      filterAndRenderMenu();
+    });
+
+    async function filterAndRenderMenu() {
+      const { data: cats } = await supabaseClient.from('categories').select('id, name');
+      const categoryMap = new Map(); cats?.forEach(c => categoryMap.set(c.id, c.name));
+      
+      const searchQuery = document.getElementById('menuSearchInput').value.toLowerCase();
+      
+      const filtered = allMenuItems.filter(m => {
+        const matchesSearch = m.name.toLowerCase().includes(searchQuery) || m.price.toString().includes(searchQuery);
+        const matchesCategory = currentCategoryFilter === 'all' || m.category_id == currentCategoryFilter;
+        return matchesSearch && matchesCategory;
+      });
+
       const container = document.getElementById('menuList');
-      container.innerHTML = menuData.map(m => {
+      if (!filtered.length) {
+        container.innerHTML = '<div class="empty-state">No items match your search</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(m => {
         const isVeg = m.is_veg === true;
         const borderColor = isVeg ? '#22c55e' : '#ef4444';
         const isActive = m.is_active !== false;
         const specialBadge = m.is_special ? `<span style="background:#f59e0b; color:black; font-size:0.65rem; padding:2px 8px; border-radius:20px; font-weight:bold; margin-right:4px;">✨ Special</span>` : '';
         const bestsellerBadge = m.is_bestseller ? `<span style="background:#ef4444; color:white; font-size:0.65rem; padding:2px 8px; border-radius:20px; font-weight:bold;">🔥 Bestseller</span>` : '';
+        
+        const imageHtml = m.image_url 
+          ? `<img src="${m.image_url}" style="border: 2px solid ${borderColor};">`
+          : `<div style="width:50px; height:50px; border-radius:12px; background:rgba(255,255,255,0.05); border: 2px solid ${borderColor}; display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:rgba(255,255,255,0.2);"><i class="fas fa-bowl-food"></i></div>`;
+
+        const vegIcon = `<span class="veg-indicator ${isVeg ? 'veg' : 'non-veg'}"></span>`;
+
         return `
         <div class="list-item">
           <div class="item-info">
-            <img src="${m.image_url || fallbackImg}" style="border: 2px solid ${borderColor};">
+            ${imageHtml}
             <div class="item-details">
-              <strong>${escapeHtml(m.name)} ${isVeg ? '🟢' : '🔴'}</strong><br>
+              <strong>${vegIcon} ${escapeHtml(m.name)}</strong><br>
               <div style="margin: 4px 0;">${specialBadge} ${bestsellerBadge}</div>
               Category: ${escapeHtml(categoryMap.get(m.category_id) || 'None')}<br>
               Price: ₹${m.price} ${m.offer_price && m.offer_price < m.price ? `<span style="color:#22c55e;">(Offer: ₹${m.offer_price})</span>` : ''}<br>
@@ -1362,6 +1922,7 @@
           </div>
         </div>`;
       }).join('');
+      
       document.querySelectorAll('.toggle-active').forEach(toggle => {
         toggle.addEventListener('change', async (e) => {
           const itemId = parseInt(toggle.dataset.id);
@@ -1378,6 +1939,7 @@
       const { data: cats } = await supabaseClient.from('categories').select('id,name');
       const catOptions = cats.map(c => `<option value="${c.id}" ${item.category_id === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
       const isVeg = item.is_veg === true;
+      
       openModal('Edit Menu Item', `
       <input id="name" placeholder="Item name" value="${escapeHtml(item.name)}" required><div class="helper-text">Name of the dish</div>
       <select id="category_id">${catOptions}</select><div class="helper-text">Category</div>
@@ -1392,24 +1954,44 @@
       <input id="price" type="number" step="0.01" placeholder="Regular price" value="${item.price}" required><div class="helper-text">Original price (₹)</div>
       <input id="offer_price" type="number" step="0.01" placeholder="Offer price (optional)" value="${item.offer_price || ''}"><div class="helper-text">Offer price (leave empty if no discount)</div>
       <textarea id="description" placeholder="Description">${escapeHtml(item.description || '')}</textarea><div class="helper-text">Brief description (optional)</div>
-      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload new image (leave empty to keep current)</div>
+      
+      <div id="imagePreviewContainer" style="margin:10px 0; display:${item.image_url ? 'flex' : 'none'}; align-items:center; gap:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
+        <img id="currentImagePreview" src="${item.image_url || ''}" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid #444;">
+        <div style="font-size:0.8rem; color:#aaa;">Image Preview</div>
+      </div>
+      
+      <input id="image_url_display" value="${item.image_url || ''}" readonly><div class="helper-text">Image URL (Upload to update)</div>
+      <button type="button" id="removeImageBtn" class="danger" style="padding:6px 12px; font-size:0.8rem; margin-bottom:15px; display:${item.image_url ? 'inline-block' : 'none'};">🗑️ Remove Current Image</button>
+      
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input type="file" id="imageInput" accept="image/*" style="margin:0; flex:1;">
+        <button type="button" id="startUploadBtn" style="background:#22c55e; color:black; padding:8px 16px; border-radius:8px; font-weight:900; display:none; border:none;">☁️ Upload</button>
+      </div>
+      <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-top:5px; display:none; font-weight:bold;"></div>
     `, async () => {
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput?.files[0];
+        const urlDisplay = document.getElementById('image_url_display');
+        let image_url = urlDisplay.value || null;
+
+        // 🔥 AUTO-UPLOAD: If user selected file but didn't click upload button
+        if (file && (!image_url || !image_url.includes('supabase.co'))) {
+          showToast('Uploading image...', false);
+          try {
+            image_url = await uploadImage(file, 'product-images');
+          } catch(e) { throw new Error('Image upload failed: ' + e.message); }
+        }
+
         const name = document.getElementById('name').value;
-        if (!name) throw new Error('Item name is required');
         const category_id = parseInt(document.getElementById('category_id').value);
-        const price = parseFloat(document.getElementById('price').value); if (isNaN(price)) throw new Error('Regular price is required');
+        const price = parseFloat(document.getElementById('price').value);
         const offer_price = parseFloat(document.getElementById('offer_price').value);
         const finalOfferPrice = isNaN(offer_price) ? null : offer_price;
         const description = document.getElementById('description').value;
         const is_veg = document.querySelector('input[name="is_veg"]:checked')?.value === 'true';
         const is_special = document.getElementById('is_special').checked;
         const is_bestseller = document.getElementById('is_bestseller').checked;
-        const file = document.getElementById('image').files[0];
-        let image_url = item.image_url;
-        if (file) {
-          if (image_url) await supabaseClient.storage.from('product-images').remove([image_url.split('/').pop()]);
-          image_url = await uploadImage(file, 'product-images');
-        }
+
         await supabaseClient.from('menu').update({
           name, category_id, price, offer_price: finalOfferPrice, description,
           image_url, is_veg, is_special, is_bestseller
@@ -1417,9 +1999,63 @@
         showToast('Menu item updated');
         loadMenu();
       });
+
+      const imageInput = document.getElementById('imageInput');
+      const startUploadBtn = document.getElementById('startUploadBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const urlDisplay = document.getElementById('image_url_display');
+      const previewImg = document.getElementById('currentImagePreview');
+      const previewContainer = document.getElementById('imagePreviewContainer');
+      const removeBtn = document.getElementById('removeImageBtn');
+
+      let currentUrl = item.image_url;
+
+      imageInput.onchange = () => {
+        if (imageInput.files[0]) startUploadBtn.style.display = 'inline-block';
+        else startUploadBtn.style.display = 'none';
+      };
+
+      startUploadBtn.onclick = async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+        startUploadBtn.disabled = true;
+        uploadStatus.style.display = 'block';
+        uploadStatus.innerText = '⏳ Uploading...';
+        try {
+          if (currentUrl) {
+            try { await supabaseClient.storage.from('product-images').remove([currentUrl.split('/').pop()]); } catch(e){}
+          }
+          const newUrl = await uploadImage(file, 'product-images');
+          currentUrl = newUrl;
+          urlDisplay.value = newUrl;
+          previewImg.src = newUrl;
+          previewContainer.style.display = 'flex';
+          removeBtn.style.display = 'inline-block';
+          uploadStatus.innerText = '✅ Uploaded!';
+          startUploadBtn.style.display = 'none';
+        } catch (e) {
+          uploadStatus.innerText = '❌ Failed';
+        } finally {
+          startUploadBtn.disabled = false;
+        }
+      };
+
+      if (removeBtn) {
+        removeBtn.onclick = async () => {
+          if (await customConfirm('Delete current image from storage?')) {
+            if (currentUrl) {
+              try { await supabaseClient.storage.from('product-images').remove([currentUrl.split('/').pop()]); } catch(e){}
+            }
+            currentUrl = null;
+            urlDisplay.value = '';
+            previewContainer.style.display = 'none';
+            removeBtn.style.display = 'none';
+          }
+        };
+      }
     };
 
-    window.deleteMenuItem = async (id) => { if (confirm('Delete this menu item?')) { await supabaseClient.from('menu').delete().eq('id', id); showToast('Menu item deleted'); loadMenu(); } };
+    window.deleteMenuItem = async (id) => { if (await customConfirm('Delete this menu item?')) { await supabaseClient.from('menu').delete().eq('id', id); showToast('Menu item deleted'); loadMenu(); } };
 
     document.getElementById('addMenuItemFab').onclick = async () => {
       const { data: cats } = await supabaseClient.from('categories').select('id,name');
@@ -1438,19 +2074,43 @@
       <input id="price" type="number" step="0.01" placeholder="Regular price" required><div class="helper-text">Original price (₹)</div>
       <input id="offer_price" type="number" step="0.01" placeholder="Offer price (optional)"><div class="helper-text">Offer price (leave empty if no discount)</div>
       <textarea id="description" placeholder="Description"></textarea><div class="helper-text">Brief description (optional)</div>
-      <input type="file" id="image" accept="image/*"><div class="helper-text">Upload item image (square recommended)</div>
+      
+      <div id="imagePreviewContainer" style="margin:10px 0; display:none; align-items:center; gap:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:12px;">
+        <img id="currentImagePreview" src="" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid #444;">
+        <div style="font-size:0.8rem; color:#aaa;">New Image Preview</div>
+      </div>
+      
+      <input id="image_url_display" value="" readonly><div class="helper-text">Image URL (Upload to generate)</div>
+      
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <input type="file" id="imageInput" accept="image/*" style="margin:0; flex:1;">
+        <button type="button" id="startUploadBtn" style="background:#22c55e; color:black; padding:8px 16px; border-radius:8px; font-weight:900; display:none; border:none; cursor:pointer;">☁️ Upload</button>
+      </div>
+      <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-bottom:10px; display:none; font-weight:bold;"></div>
     `, async () => {
-        const name = document.getElementById('name').value; if (!name) throw new Error('Item name is required');
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput?.files[0];
+        const urlDisplay = document.getElementById('image_url_display');
+        let image_url = urlDisplay.value || null;
+
+        // 🔥 AUTO-UPLOAD: If user selected file but didn't click upload button
+        if (file && (!image_url || !image_url.includes('supabase.co'))) {
+          showToast('Uploading image...', false);
+          try {
+            image_url = await uploadImage(file, 'product-images');
+          } catch(e) { throw new Error('Image upload failed: ' + e.message); }
+        }
+
+        const name = document.getElementById('name').value;
         const category_id = parseInt(document.getElementById('category_id').value);
-        const price = parseFloat(document.getElementById('price').value); if (isNaN(price)) throw new Error('Regular price is required');
+        const price = parseFloat(document.getElementById('price').value);
         const offer_price = parseFloat(document.getElementById('offer_price').value);
         const finalOfferPrice = isNaN(offer_price) ? null : offer_price;
         const description = document.getElementById('description').value;
         const is_veg = document.querySelector('input[name="is_veg"]:checked')?.value === 'true';
         const is_special = document.getElementById('is_special').checked;
         const is_bestseller = document.getElementById('is_bestseller').checked;
-        const file = document.getElementById('image').files[0];
-        let image_url = null; if (file) image_url = await uploadImage(file, 'product-images');
+
         await supabaseClient.from('menu').insert([{
           name, category_id, price, offer_price: finalOfferPrice, description,
           image_url, is_veg, is_active: true, is_special, is_bestseller
@@ -1458,6 +2118,40 @@
         showToast('Menu item added');
         loadMenu();
       });
+
+      const imageInput = document.getElementById('imageInput');
+      const startUploadBtn = document.getElementById('startUploadBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const urlDisplay = document.getElementById('image_url_display');
+      const previewImg = document.getElementById('currentImagePreview');
+      const previewContainer = document.getElementById('imagePreviewContainer');
+
+      imageInput.onchange = () => {
+        if (imageInput.files[0]) startUploadBtn.style.display = 'inline-block';
+        else startUploadBtn.style.display = 'none';
+      };
+
+      startUploadBtn.onclick = async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+        startUploadBtn.disabled = true;
+        startUploadBtn.innerText = '...';
+        uploadStatus.style.display = 'block';
+        uploadStatus.innerText = '⏳ Uploading...';
+        try {
+          const newUrl = await uploadImage(file, 'product-images');
+          urlDisplay.value = newUrl;
+          previewImg.src = newUrl;
+          previewContainer.style.display = 'flex';
+          uploadStatus.innerText = '✅ Uploaded!';
+          startUploadBtn.style.display = 'none';
+        } catch (e) {
+          uploadStatus.innerText = '❌ Failed';
+        } finally {
+          startUploadBtn.disabled = false;
+          startUploadBtn.innerText = '☁️ Upload';
+        }
+      };
     };
 
     // ========== COUPONS ==========
@@ -1497,7 +2191,7 @@
         });
       });
     }
-    window.deleteCoupon = async (id) => { if (confirm('Delete this coupon?')) { await supabaseClient.from('discounts').delete().eq('id', id); loadCoupons(); } };
+    window.deleteCoupon = async (id) => { if (await customConfirm('Delete this coupon?')) { await supabaseClient.from('discounts').delete().eq('id', id); loadCoupons(); } };
     window.editCoupon = async (id) => {
       const { data: c } = await supabaseClient.from('discounts').select('*').eq('id', id).single();
       if (!c) return;
@@ -1557,16 +2251,32 @@
       const { data, error } = await supabaseClient.from('delivery_zones').select('*').order('pincode', { ascending: true });
       if (error) { console.error(error); document.getElementById('deliveryZonesList').innerHTML = '<div class="empty-state">Error loading zones</div>'; return; }
       allZones = data || [];
+
+      // Update Filter Dropdowns
+      const pincodes = [...new Set(allZones.map(z => z.pincode))].sort();
+      const areas = [...new Set(allZones.map(z => z.area))].sort();
+      
+      const pinSelect = document.getElementById('zoneFilterPincode');
+      const areaSelect = document.getElementById('zoneFilterArea');
+      
+      const currentPin = pinSelect.value;
+      const currentArea = areaSelect.value;
+
+      pinSelect.innerHTML = '<option value="">All Pincodes</option>' + pincodes.map(p => `<option value="${p}" ${p === currentPin ? 'selected' : ''}>${p}</option>`).join('');
+      areaSelect.innerHTML = '<option value="">All Areas</option>' + areas.map(a => `<option value="${a}" ${a === currentArea ? 'selected' : ''}>${a}</option>`).join('');
+
       filterZones();
     }
     function filterZones() {
-      const filterPincode = document.getElementById('zoneFilterPincode').value.toLowerCase();
-      const filterArea = document.getElementById('zoneFilterArea').value.toLowerCase();
+      const filterPincode = document.getElementById('zoneFilterPincode').value;
+      const filterArea = document.getElementById('zoneFilterArea').value;
       let filtered = allZones;
-      if (filterPincode) filtered = filtered.filter(z => z.pincode.toLowerCase().includes(filterPincode));
-      if (filterArea) filtered = filtered.filter(z => z.area.toLowerCase().includes(filterArea));
+      if (filterPincode) filtered = filtered.filter(z => z.pincode === filterPincode);
+      if (filterArea) filtered = filtered.filter(z => z.area === filterArea);
       renderZoneList(filtered);
     }
+    document.getElementById('zoneFilterPincode')?.addEventListener('change', filterZones);
+    document.getElementById('zoneFilterArea')?.addEventListener('change', filterZones);
     function renderZoneList(zones) {
       const container = document.getElementById('deliveryZonesList');
       if (!zones.length) { container.innerHTML = '<div class="empty-state">No delivery zones match</div>'; return; }
@@ -1605,7 +2315,10 @@
       const { data: z } = await supabaseClient.from('delivery_zones').select('*').eq('id', id).single();
       if (!z) return;
       document.getElementById('zonePincode').value = z.pincode;
-      document.getElementById('zoneArea').value = z.area;
+      
+      // Populate area select and set it
+      await updateAreaOptions(z.pincode, z.area);
+
       document.getElementById('zoneSubArea').value = z.sub_area || '';
       document.getElementById('zoneBaseCharge').value = z.base_delivery_charge;
       document.getElementById('zoneOfferCharge').value = (z.offer_delivery_charge !== null ? z.offer_delivery_charge : '');
@@ -1620,9 +2333,98 @@
       editingZoneId = id;
       document.getElementById('zoneModal').style.display = 'flex';
     };
-    window.deleteZone = async (id) => { if (confirm('Delete this delivery zone?')) { await supabaseClient.from('delivery_zones').delete().eq('id', id); loadDeliveryZones(); } };
+
+    async function updateAreaOptions(pincode, selectedArea = null) {
+      const areas = [...new Set(allZones.filter(z => z.pincode === pincode).map(z => z.area))];
+      const select = document.getElementById('zoneAreaSelect');
+      const existingWrapper = document.getElementById('existingAreaWrapper');
+      const newWrapper = document.getElementById('newAreaWrapper');
+      const areaInput = document.getElementById('zoneArea');
+
+      if (areas.length > 0) {
+        existingWrapper.style.display = 'block';
+        let options = areas.map(a => `<option value="${a}" ${a === selectedArea ? 'selected' : ''}>${escapeHtml(a)}</option>`).join('');
+        options += `<option value="ADD_NEW" ${selectedArea && !areas.includes(selectedArea) ? '' : (!selectedArea ? 'selected' : '')}>+ Add New Area</option>`;
+        select.innerHTML = options;
+        
+        // Show/hide new area input based on selection
+        const toggleNewArea = () => {
+          if (select.value === 'ADD_NEW') {
+            newWrapper.style.display = 'block';
+            areaInput.required = true;
+            if (!selectedArea || areas.includes(selectedArea)) areaInput.value = '';
+          } else {
+            newWrapper.style.display = 'none';
+            areaInput.required = false;
+            areaInput.value = select.value;
+          }
+        };
+        select.onchange = toggleNewArea;
+        toggleNewArea();
+      } else {
+        existingWrapper.style.display = 'none';
+        newWrapper.style.display = 'block';
+        areaInput.required = true;
+        if (!selectedArea) areaInput.value = '';
+        else areaInput.value = selectedArea;
+      }
+    }
+
+    document.getElementById('zonePincode').addEventListener('input', (e) => {
+      const pin = e.target.value.trim();
+      if (pin.length >= 3) {
+        updateAreaOptions(pin);
+      }
+    });
+
+    window.deleteZone = async (id) => { if (await customConfirm('Delete this delivery zone?')) { await supabaseClient.from('delivery_zones').delete().eq('id', id); loadDeliveryZones(); } };
+
+    window.detectPincode = async () => {
+      const btn = document.getElementById('detectPinBtn');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled = true;
+
+      if (!navigator.geolocation) {
+        showToast('Geolocation not supported', true);
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          const pincode = data.address?.postcode;
+          
+          if (pincode) {
+            const input = document.getElementById('zonePincode');
+            input.value = pincode;
+            // Trigger input event to update area dropdowns
+            input.dispatchEvent(new Event('input'));
+            showToast('Pincode detected!');
+          } else {
+            showToast('Pincode not found', true);
+          }
+        } catch (e) {
+          showToast('Failed to detect location', true);
+        } finally {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        }
+      }, (err) => {
+        showToast('Location permission denied', true);
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      });
+    };
+
     document.getElementById('addZoneBtn').addEventListener('click', () => {
       document.getElementById('zonePincode').value = '';
+      document.getElementById('existingAreaWrapper').style.display = 'none';
+      document.getElementById('newAreaWrapper').style.display = 'block';
       document.getElementById('zoneArea').value = '';
       document.getElementById('zoneSubArea').value = '';
       document.getElementById('zoneBaseCharge').value = '';
@@ -1641,7 +2443,7 @@
       const activeDays = Array.from(document.querySelectorAll('.dayCheck:checked')).map(cb => cb.value).join(',');
       const data = {
         pincode: document.getElementById('zonePincode').value.trim(),
-        area: document.getElementById('zoneArea').value.trim(),
+        area: (document.getElementById('zoneAreaSelect').offsetParent ? (document.getElementById('zoneAreaSelect').value === 'ADD_NEW' ? document.getElementById('zoneArea').value.trim() : document.getElementById('zoneAreaSelect').value) : document.getElementById('zoneArea').value.trim()),
         sub_area: document.getElementById('zoneSubArea').value.trim() || null,
         base_delivery_charge: parseFloat(document.getElementById('zoneBaseCharge').value),
         offer_delivery_charge: document.getElementById('zoneOfferCharge').value === '' ? null : parseFloat(document.getElementById('zoneOfferCharge').value),

@@ -111,9 +111,17 @@
     }
 
     @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+
+      100% {
+        opacity: 1;
+      }
     }
 
     .login-btn,
@@ -272,7 +280,7 @@
       background: rgba(255, 255, 255, 0.95);
       padding: 3px;
       border-radius: 4px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1366,30 +1374,14 @@
 
     .delivery-progress-container {
       position: sticky;
-      top: 58px;
-      z-index: 10;
-      background: rgba(20, 20, 20, 0.7);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(34, 197, 94, 0.2);
-      padding: 12px 16px;
-      margin: 0 -12px 24px -12px;
+      top: 52px; /* Just below the header */
+      z-index: 90;
+      background: #000;
+      padding: 12px 0;
+      margin: 0;
       display: none;
-      animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
-    @keyframes slideDown {
-      from {
-        transform: translateY(-100%);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
 
     .delivery-progress-text {
       font-size: 0.85rem;
@@ -1445,46 +1437,38 @@
       }
     }
 
+
     .free-delivery-badge {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       color: #22c55e;
       font-weight: 800;
       font-size: 1rem;
       justify-content: center;
       text-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+      background: rgba(34, 197, 94, 0.05);
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(34, 197, 94, 0.1);
+      animation: badgePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .delivery-time-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(34, 197, 94, 0.1);
-      color: #22c55e;
-      padding: 6px 12px;
-      border-radius: 30px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      margin-top: 10px;
-      border: 1px solid rgba(34, 197, 94, 0.2);
+    @keyframes badgePop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
 
-    .free-delivery-badge i {
-      font-size: 1.2rem;
-      animation: truckMove 2s infinite ease-in-out;
+    .bike-anim {
+      font-size: 1.3rem;
+      animation: bikeDrive 1.2s ease-out;
     }
 
-    @keyframes truckMove {
-
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-
-      50% {
-        transform: translateX(5px);
-      }
+    @keyframes bikeDrive {
+      0% { transform: translateX(-30px); opacity: 0; }
+      40% { transform: translateX(10px) rotate(-10deg); }
+      70% { transform: translateX(-5px) rotate(5deg); }
+      100% { transform: translateX(0) rotate(0deg); opacity: 1; }
     }
 
     @keyframes fadeIn {
@@ -1497,6 +1481,20 @@
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    .delivery-time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 152, 0, 0.1);
+      color: #ff9800;
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 10px;
+      border: 1px solid rgba(255, 152, 0, 0.2);
     }
 
     /* Skeleton Loading */
@@ -1681,15 +1679,18 @@
       </div>
     </div>
 
-    <div id="cookingInstructionsSection" class="instructions-section"
-      style="display: none; margin-bottom: 24px; margin-top: 24px;">
-      <div class="section-title"
-        style="font-size: 0.95rem; margin-bottom: 12px; color: #fff; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-comment-dots" style="color: #22c55e;"></i> Cooking Instructions
+    <div id="cookingInstructionsSection" class="instructions-section" style="display: none; margin-top: 24px; margin-bottom: 12px;">
+      <div id="toggleInstructionsBtn" style="background:rgba(34,197,94,0.05); border:1px dashed rgba(34,197,94,0.3); color:#22c55e; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:12px; transition:0.2s;">
+        <i class="fas fa-plus-circle"></i> Add Cooking Instructions
       </div>
-      <textarea id="cookingInstructions" class="instructions-input"
-        placeholder="e.g. Make it extra spicy, No onions, etc." rows="2"
-        style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:16px; color:#fff; font-size:0.9rem; resize:none; outline:none; transition:0.3s; border: 1px solid rgba(255,255,255,0.08);"></textarea>
+      <div id="instructionsInputWrapper" style="display: none; margin-top: 12px; animation: slideIn 0.3s ease-out;">
+        <div class="section-title" style="font-size: 0.8rem; margin-bottom: 8px; color: #aaa; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-comment-dots" style="color:#22c55e;"></i> Special Instructions
+        </div>
+        <textarea id="cookingInstructions" class="instructions-input"
+          placeholder="e.g. Make it extra spicy, No onions, etc." rows="2"
+          style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:16px; color:#fff; font-size:0.9rem; resize:none; outline:none; transition:0.3s;"></textarea>
+      </div>
     </div>
 
     <div id="summaryArea"></div>
@@ -1753,9 +1754,9 @@
     // ==================== GLOBALS ====================
     // 🔥 FIX 1: SUPABASE LOCK BYPASS 🔥
     const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
-      auth: { 
-        persistSession: true, 
-        storage: localStorage, 
+      auth: {
+        persistSession: true,
+        storage: localStorage,
         detectSessionInUrl: true,
         // MAGIC FIX: Bypass navigator.locks completely
         lock: async (name, timeout, fn) => {
@@ -1766,7 +1767,7 @@
 
     let cart = [];
     let currentUser = null;
-    let addresses =[];
+    let addresses = [];
     let selectedAddressId = localStorage.getItem('lastSelectedAddressId') || null;
     let selectedPayment = 'online';
     let loadingOverlay = null;
@@ -1883,10 +1884,10 @@
     }
 
     async function syncCartWithDatabase() {
-      if (!cart.length) return { valid: true, inactiveIds:[] };
+      if (!cart.length) return { valid: true, inactiveIds: [] };
       const cache = await getMenuCache();
       if (!cache) return { valid: false, inactiveIds: [] };
-      const inactiveIds =[];
+      const inactiveIds = [];
       let priceChanged = false;
       for (let i = 0; i < cart.length; i++) {
         const item = cart[i];
@@ -1943,7 +1944,7 @@
       }
 
       progressContainer.style.display = 'block';
-      progressContainer.innerHTML = '<div class="skeleton-bar"></div>';
+      // Skeleton removed to prevent flickering
       deliveryAvailable = true;
 
       const addr = addresses.find(a => a.id == selectedAddressId);
@@ -2070,22 +2071,14 @@
         const isFree = offerDeliveryCharge === 0;
         container.innerHTML = `
         <div class="free-delivery-badge">
-          <i class="fas fa-truck-bolt"></i> 
+          <i class="fas fa-motorcycle bike-anim"></i> 
           <span>You've unlocked <b>${isFree ? 'FREE Delivery!' : `₹${offerDeliveryCharge} Delivery!`}</b></span>
         </div>
       `;
-      
+
         if (!window.hasShownDeliveryConfetti) {
           window.hasShownDeliveryConfetti = true;
-          if (typeof confetti === 'function') {
-            confetti({
-              particleCount: 150,
-              spread: 80,
-              origin: { y: 0.1 },
-              colors: ['#22c55e', '#ffffff', '#ff9800'],
-              zIndex: 3000
-            });
-          }
+          // Confetti removed to avoid overlap with coupon animation
         }
       }
     }
@@ -2319,7 +2312,7 @@
           localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
           document.getElementById('couponMessage').innerHTML = `<span style="color:#22c55e;">✅ ${result.message} You save ₹${Number(result.discount_amount).toFixed(2)}</span>`;
           document.getElementById('couponRemoveContainer').style.display = 'block';
-          
+
           if (typeof confetti === 'function') {
             confetti({
               particleCount: 100,
@@ -2328,7 +2321,7 @@
               colors: ['#22c55e', '#ffffff', '#ff9800']
             });
           }
-          
+
           renderSummary();
         } else {
           // If it fails during re-validation, we should remove it
@@ -2353,11 +2346,11 @@
     }
 
     async function loadAddresses() {
-      if (!currentUser) return[];
+      if (!currentUser) return [];
       try {
         const { data, error } = await supabaseClient.from('addresses').select('*').eq('user_id', currentUser.id).order('is_default', { ascending: false });
         if (error) throw error;
-        addresses = data ||[];
+        addresses = data || [];
 
         // Auto-select default address if none selected
         if (!selectedAddressId && addresses.length > 0) {
@@ -2366,7 +2359,7 @@
         }
 
         return addresses;
-      } catch (err) { console.error(err); showToast('Could not load addresses', true); return[]; }
+      } catch (err) { console.error(err); showToast('Could not load addresses', true); return []; }
     }
 
     async function renderCheckoutForm() {
@@ -2768,7 +2761,7 @@
     // 🔥 FIX 2: PREVENT UNNECESSARY SESSION CALLS 🔥
     async function updateAuthUI(providedSession = undefined) {
       await fetchAppSettings();
-      
+
       let session;
       if (providedSession !== undefined) {
         session = providedSession;
@@ -2776,7 +2769,7 @@
         const { data } = await supabaseClient.auth.getSession();
         session = data.session;
       }
-      
+
       const authDiv = document.getElementById('authButton');
       const popover = document.getElementById('profilePopover');
 
@@ -2865,9 +2858,32 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Cooking Instructions Toggle
+      const toggleBtn = document.getElementById('toggleInstructionsBtn');
+      const wrapper = document.getElementById('instructionsInputWrapper');
+      if (toggleBtn && wrapper) {
+        toggleBtn.onclick = () => {
+          if (wrapper.style.display === 'none') {
+            wrapper.style.display = 'block';
+            toggleBtn.innerHTML = '<i class="fas fa-minus-circle"></i> Hide Instructions';
+            toggleBtn.style.background = 'rgba(239,68,68,0.05)';
+            toggleBtn.style.color = '#ef4444';
+            toggleBtn.style.borderColor = 'rgba(239,68,68,0.2)';
+            document.getElementById('cookingInstructions').focus();
+          } else {
+            wrapper.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Add Cooking Instructions';
+            toggleBtn.style.background = 'rgba(34,197,94,0.05)';
+            toggleBtn.style.color = '#22c55e';
+            toggleBtn.style.borderColor = 'rgba(34,197,94,0.3)';
+            document.getElementById('cookingInstructions').value = '';
+          }
+        };
+      }
+
       loadCart(); updateAuthUI();
       initLocation();
-      
+
       // 🔥 FIX 4: SAFE TAB REFRESH ON VISIBILITY CHANGE 🔥
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
@@ -2974,10 +2990,10 @@
       document.getElementById('navMenu').addEventListener('click', () => window.location.href = '/menu.html');
       document.getElementById('navAccount').addEventListener('click', () => window.location.href = '/account.html');
     });
-    
+
     // 🔥 FIX 3: PASS SESSION ON AUTH CHANGE 🔥
-    supabaseClient.auth.onAuthStateChange((event, session) => { 
-      updateAuthUI(session); 
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      updateAuthUI(session);
     });
   </script>
 </body>
