@@ -402,21 +402,41 @@
 
     /* Inactive card style */
     .menu-card.inactive {
-      opacity: 0.65;
-      filter: grayscale(0.3);
-      border-color: #555;
+      opacity: 0.7;
+      filter: grayscale(1);
+      border-color: #333;
       order: 1;
+      position: relative;
+    }
+
+    .menu-card.inactive::after {
+      content: 'CURRENTLY UNAVAILABLE';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-5deg);
+      background: rgba(0, 0, 0, 0.85);
+      color: #ff9800;
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 4px;
+      border: 1px solid #ff9800;
+      white-space: nowrap;
+      z-index: 10;
+      letter-spacing: 1px;
+      pointer-events: none;
     }
 
     .menu-card.inactive .cart-action-btn {
-      background: #555;
+      background: #333 !important;
       cursor: not-allowed;
       pointer-events: none;
       box-shadow: none;
     }
 
     .menu-card.inactive .cart-action-btn .add-text {
-      color: #aaa;
+      color: #666 !important;
     }
 
     .menu-card-image {
@@ -1175,6 +1195,7 @@
     let isLoading = true;
     let searchDebounceTimer = null;
     let currentUser = null;
+    let realtimeChannel = null;
 
     const FOOD_BOWL_SVG = `<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter><linearGradient id="bowlGrad" x1="0" x2="1"><stop offset="0%" stop-color="#7c2d12"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs><path d="M25 82 Q25 95 50 95 Q75 95 75 82 Z" fill="url(#bowlGrad)" stroke="#fb923c" stroke-width="2"/><ellipse cx="50" cy="80" rx="22" ry="7" fill="#ea580c"/><g filter="url(#softBlur)" stroke-linecap="round" fill="none"><path class="steam" d="M38 75 C30 55, 48 45, 38 25 C28 10, 42 5, 38 -5" stroke="#fff7ed" stroke-width="5" stroke-opacity="0.35" stroke-dasharray="32 20"/><path class="steam" d="M44 75 C40 57, 50 47, 44 30 C38 18, 48 12, 44 0" stroke="#fed7aa" stroke-width="3" stroke-opacity="0.65" stroke-dasharray="22 18"/><path class="steam" d="M50 75 C45 55, 55 42, 50 25 C45 15, 55 8, 50 -2" stroke="#ffffff" stroke-width="4" stroke-opacity="0.8" stroke-dasharray="28 18"/><path class="steam" d="M56 75 C60 57, 50 47, 56 30 C62 18, 52 12, 56 0" stroke="#fed7aa" stroke-width="3" stroke-opacity="0.65" stroke-dasharray="22 18"/><path class="steam" d="M62 75 C70 55, 52 45, 62 25 C72 10, 58 5, 62 -5" stroke="#fff7ed" stroke-width="5" stroke-opacity="0.35" stroke-dasharray="32 20"/></g></svg>`;
     const CATEGORY_FALLBACK_SVG = FOOD_BOWL_SVG;
@@ -1334,34 +1355,37 @@
       });
     }
 
-    async function loadMenuItems() {
+    async function loadMenuItems(force = false) {
       try {
-        const { data: latestRow } = await supabaseClient
-          .from('menu')
-          .select('updated_at')
-          .order('updated_at', { ascending: false })
-          .limit(1);
+        if (!force) {
+          const { data: latestRow } = await supabaseClient
+            .from('menu')
+            .select('updated_at')
+            .order('updated_at', { ascending: false })
+            .limit(1);
 
-        const remoteTimestamp = (latestRow && latestRow.length > 0) ? latestRow[0].updated_at : 'none';
-        const localTimestamp = localStorage.getItem('menu_cache_timestamp');
-        const cachedData = localStorage.getItem('menu_cache_data');
+          const remoteTimestamp = (latestRow && latestRow.length > 0) ? latestRow[0].updated_at : 'none';
+          const localTimestamp = localStorage.getItem('menu_cache_timestamp');
+          const cachedData = localStorage.getItem('menu_cache_data');
 
-        if (localTimestamp === remoteTimestamp && cachedData) {
-          try {
-            allMenuItems = JSON.parse(cachedData);
-            if (allMenuItems.length > 0) {
-              isLoading = false;
-              renderMenu();
-              return;
-            }
-          } catch (e) { localStorage.removeItem('menu_cache_data'); }
+          if (localTimestamp === remoteTimestamp && cachedData) {
+            try {
+              allMenuItems = JSON.parse(cachedData);
+              if (allMenuItems.length > 0) {
+                isLoading = false;
+                renderMenu();
+                return;
+              }
+            } catch (e) { localStorage.removeItem('menu_cache_data'); }
+          }
         }
 
         const { data, error } = await supabaseClient.from('menu').select('*').order('id');
         if (!error && data) {
           allMenuItems = data;
           localStorage.setItem('menu_cache_data', JSON.stringify(data));
-          localStorage.setItem('menu_cache_timestamp', remoteTimestamp);
+          const latestTs = data.reduce((max, item) => (item.updated_at > max ? item.updated_at : max), '');
+          localStorage.setItem('menu_cache_timestamp', latestTs || 'none');
         } else {
           allMenuItems = [];
         }
@@ -1372,6 +1396,20 @@
         isLoading = false;
         renderMenu();
       }
+    }
+
+    function subscribeToMenuChanges() {
+      if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+      realtimeChannel = supabaseClient
+        .channel('menu-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'menu' }, () => {
+          loadMenuItems(true);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => {
+          loadMenuItems(true);
+          loadCategories();
+        })
+        .subscribe();
     }
 
     function renderMenu() {
@@ -1438,7 +1476,8 @@
         const itemCat = allCategories.find(c => c.id == item.category_id);
         const catAvailability = isCategoryOpen(itemCat);
         const isCatClosed = catAvailability.status !== 'open';
-        const isActive = (item.is_active !== false) && !isCatClosed;
+        const isItemDisabled = (item.is_active === false || item.is_active === 'false' || item.is_active === 0);
+        const isActive = !isItemDisabled && !isCatClosed;
         
         const qty = isActive ? getQty(item.id) : 0;
         const nameEscaped = escapeHtml(item.name);
@@ -1468,8 +1507,13 @@
 
         let actionHtml;
         if (!isActive) {
-          const reason = isCatClosed ? (catAvailability.status === 'paused' ? 'Paused' : 'Opens Soon') : 'Unavailable';
-          actionHtml = `<div class="cart-action-btn disabled" style="background:#444; cursor:not-allowed; pointer-events:none;"><span class="add-text" style="color:#888; font-size:0.75rem;"><i class="fas fa-lock"></i> ${reason}</span></div>`;
+          let reason = 'Unavailable';
+          if (isCatClosed) {
+            reason = catAvailability.status === 'paused' ? 'Paused' : 'Opens Soon';
+          } else if (isItemDisabled) {
+            reason = 'Unavailable';
+          }
+          actionHtml = `<div class="cart-action-btn disabled" style="background:#333; cursor:not-allowed; pointer-events:none;"><span class="add-text" style="color:#666; font-size:0.75rem;"><i class="fas fa-lock"></i> ${reason}</span></div>`;
         } else {
           actionHtml = `<div class="cart-action-btn" data-id="${item.id}" data-name="${nameEscaped}" data-price="${cartPrice}" data-veg="${isVeg}" data-mode="${qty > 0 ? 'qty' : 'add'}">
           ${qty > 0 ? `
@@ -1483,8 +1527,10 @@
         }
 
         const inactiveClass = !isActive ? 'inactive' : '';
+        const itemDisabledClass = isItemDisabled ? 'item-disabled' : '';
+
         return `
-        <div class="menu-card ${inactiveClass}">
+        <div class="menu-card ${inactiveClass} ${itemDisabledClass}">
           <div class="menu-card-image">${imageBlock}</div>
           <div class="menu-card-info">
             <div class="menu-name">${vegIndicator}${nameEscaped}</div>
@@ -1666,6 +1712,7 @@
       updateAuthUI();
       await loadCategories();
       await loadMenuItems();
+      subscribeToMenuChanges();
       updateCartBadge();
       initLocation();
     }
