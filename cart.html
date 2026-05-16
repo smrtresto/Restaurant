@@ -45,12 +45,12 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 16px;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.98);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       position: sticky;
       top: 0;
-      z-index: 110;
+      z-index: 1000;
       gap: 12px;
     }
 
@@ -672,6 +672,24 @@
       cursor: not-allowed;
     }
 
+    .section-header, .coupon-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .address-section, .payment-section, .coupon-section, .instructions-section {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -1240,7 +1258,7 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 24px;
       padding: 24px;
-      z-index: 1000;
+      z-index: 9999;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
       display: none;
       transform-origin: top right;
@@ -1374,8 +1392,8 @@
 
     .delivery-progress-container {
       position: sticky;
-      top: 52px; /* Just below the header */
-      z-index: 90;
+      top: 62px; /* Fine-tuned to eliminate the tiny gap */
+      z-index: 999;
       background: #000;
       padding: 12px 0;
       margin: 0;
@@ -1632,14 +1650,33 @@
     </div>
   </div>
 
+  <!-- COD Confirmation Modal -->
+  <div id="codConfirmModal" class="modal">
+    <div class="modal-content" style="max-width:400px; text-align:center; padding:30px;">
+      <div style="width:70px; height:70px; background:rgba(34,197,94,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:#22c55e; font-size:1.8rem; position:relative;">
+        <i class="fas fa-hand-holding" style="position:absolute; bottom:20px;"></i>
+        <i class="fas fa-indian-rupee-sign" style="font-size:0.9rem; position:absolute; top:22px; right:28px;"></i>
+      </div>
+      <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:12px;">Confirm COD Order</h2>
+      <p style="color:#aaa; font-size:0.95rem; line-height:1.5; margin-bottom:24px;">
+        You are about to place a Cash on Delivery order for <b id="codConfirmAmount" style="color:#fff;"></b>. Are you sure you want to proceed?
+      </p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <button id="finalConfirmCodBtn" class="place-order-btn" style="width:100%; margin:0;">Yes, Place Order</button>
+        <button id="cancelCodBtn" style="background:transparent; border:none; color:#888; font-weight:600; cursor:pointer; padding:10px;">Go Back</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-header">
     <div class="header-left">
       <div class="logo" onclick="window.location.href='/index.html'"><img src="/logo.png" alt="Mr Chef"
           onerror="this.style.display='none'"></div>
       <div class="brand-info">
         <div class="brand-title">MR CHEF</div>
-        <div class="location-name">
-          <i class="fas fa-clock"></i> <span id="userLocation">Est. Delivery: ASAP</span>
+        <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#aaa; font-weight:600; margin-top:2px;">
+          <i class="fas fa-clock" style="color:#2196f3; font-size:0.7rem;"></i>
+          <span id="estDeliveryHeader">Est. Delivery: --</span>
         </div>
       </div>
     </div>
@@ -1665,10 +1702,10 @@
     <div id="cartItemsList"></div>
 
     <div id="couponSection" class="coupon-section" style="display: none; margin-top: 24px;">
-      <div class="section-title"
-        style="font-size: 0.95rem; margin-bottom: 12px; color: #fff; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-ticket-alt" style="color: #22c55e;"></i> Offers & Coupons
-      </div>
+      <div class="coupon-header">
+      <i class="fas fa-ticket-alt" style="color:#ffc107;"></i>
+      <span>Apply Coupon</span>
+    </div>
       <div class="coupon-input-group">
         <input type="text" id="couponInput" class="coupon-input" placeholder="Enter coupon code">
         <button id="applyCouponBtn" class="apply-coupon-btn">Apply</button>
@@ -1728,8 +1765,8 @@
         <select id="addrSubArea" style="display:none;">
           <option value="">Select Sub‑Area</option>
         </select>
-        <textarea id="addrAddress" rows="3" placeholder="Street / Colony / Area"></textarea>
-        <input type="text" id="addrLandmark" placeholder="Landmark (Optional)">
+        <textarea id="addrAddress" rows="3" placeholder="Street, Apartment name, House No. etc."></textarea>
+        <input type="text" id="addrLandmark" placeholder="Delivery Guide / Landmark (Optional)">
         <label
           style="display:flex; align-items:center; gap:10px; margin-top:16px; font-size:0.9rem; color:#aaa; cursor:pointer;">
           <input type="checkbox" id="addrDefault" style="width:auto; transform:scale(1.2);"> <span>Set as default
@@ -1992,7 +2029,7 @@
     }
 
     function updateHeaderDeliveryTime() {
-      const headerText = document.getElementById('userLocation');
+      const headerText = document.getElementById('estDeliveryHeader');
       if (!headerText) return;
       if (currentEstimatedTime) {
         let timeStr = currentEstimatedTime;
@@ -2149,7 +2186,7 @@
         <div class="empty-state">
           <i class="fas fa-lock"></i>
           <p>Please login to checkout.</p>
-          <button onclick="document.getElementById('loginHeaderBtn')?.click()" class="place-order-btn">
+          <button onclick="window.openLoginPopover(event)" class="place-order-btn">
             Login Now
           </button>
         </div>`;
@@ -2261,21 +2298,21 @@
 
       let summaryHtml = `
       <div class="summary-box">
-        <div class="summary-row"><span>Subtotal</span><span>₹${originalTotal.toFixed(2)}</span></div>
-        <div class="summary-row"><span>Offer Discount</span><span style="color:#22c55e;">- ₹${currentOfferDiscount.toFixed(2)}</span></div>`;
-      if (couponDiscount > 0) summaryHtml += `<div class="summary-row"><span>Coupon Discount</span><span style="color:#22c55e;">- ₹${couponDiscount.toFixed(2)}</span></div>`;
+        <div class="summary-row"><span><i class="fas fa-shopping-basket" style="color:#2196f3; width:20px;"></i> Subtotal</span><span>₹${originalTotal.toFixed(2)}</span></div>
+        <div class="summary-row"><span><i class="fas fa-percent" style="color:#22c55e; width:20px;"></i> Offer Discount</span><span style="color:#22c55e;">- ₹${currentOfferDiscount.toFixed(2)}</span></div>`;
+      if (couponDiscount > 0) summaryHtml += `<div class="summary-row"><span><i class="fas fa-ticket-alt" style="color:#ffc107; width:20px;"></i> Coupon Discount</span><span style="color:#22c55e;">- ₹${couponDiscount.toFixed(2)}</span></div>`;
       if (deliveryAvailable && currentDeliveryCharge > 0) {
         if (currentDeliveryBaseCharge > currentDeliveryCharge && currentDeliveryBaseCharge > 0) {
-          summaryHtml += `<div class="summary-row"><span>Delivery Charge</span><span><span style="text-decoration:line-through;color:#aaa;">₹${currentDeliveryBaseCharge.toFixed(2)}</span> <span style="color:#22c55e;">₹${currentDeliveryCharge.toFixed(2)}</span></span></div>`;
+          summaryHtml += `<div class="summary-row"><span><i class="fas fa-truck" style="color:#ff5722; width:20px;"></i> Delivery Charge</span><span><span style="text-decoration:line-through;color:#aaa;">₹${currentDeliveryBaseCharge.toFixed(2)}</span> <span style="color:#22c55e;">₹${currentDeliveryCharge.toFixed(2)}</span></span></div>`;
         } else {
-          summaryHtml += `<div class="summary-row"><span>Delivery Charge</span><span>₹${currentDeliveryCharge.toFixed(2)}</span></div>`;
+          summaryHtml += `<div class="summary-row"><span><i class="fas fa-truck" style="color:#ff5722; width:20px;"></i> Delivery Charge</span><span>₹${currentDeliveryCharge.toFixed(2)}</span></div>`;
         }
       } else if (deliveryAvailable && currentDeliveryCharge === 0 && currentDeliveryBaseCharge > 0) {
-        summaryHtml += `<div class="summary-row"><span>Delivery Charge</span><span><span style="text-decoration:line-through;">₹${currentDeliveryBaseCharge.toFixed(2)}</span> <span style="color:#22c55e;">Free</span></span></div>`;
+        summaryHtml += `<div class="summary-row"><span><i class="fas fa-truck" style="color:#ff5722; width:20px;"></i> Delivery Charge</span><span><span style="text-decoration:line-through;">₹${currentDeliveryBaseCharge.toFixed(2)}</span> <span style="color:#22c55e;">Free</span></span></div>`;
       } else if (!deliveryAvailable) {
-        summaryHtml += `<div class="summary-row"><span>Delivery</span><span style="color:#ef4444;">Not available</span></div>`;
+        summaryHtml += `<div class="summary-row"><span><i class="fas fa-truck" style="color:#aaa; width:20px;"></i> Delivery</span><span style="color:${!currentUser ? '#aaa' : '#ef4444'};">${!currentUser ? 'Login to check' : 'Service currently unavailable'}</span></div>`;
       }
-      summaryHtml += `<div class="summary-row total"><span>Total to Pay</span><span>₹${finalTotal.toFixed(2)}</span></div>`;
+      summaryHtml += `<div class="summary-row total" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; margin-top: 8px;"><span>Total to Pay</span><span>₹${finalTotal.toFixed(2)}</span></div>`;
       if (totalDiscount > 0) summaryHtml += `<div style="text-align:right;margin-top:10px;"><span class="saved-badge">✨ You save ${Math.round((totalDiscount / originalTotal) * 100)}% ✨</span></div>`;
       summaryHtml += `</div>`;
       summaryDiv.innerHTML = summaryHtml;
@@ -2408,11 +2445,17 @@
 
       checkoutDiv.innerHTML = `
       <div class="address-section">
-        <div class="section-title"><i class="fas fa-map-marker-alt"></i> Delivery Address</div>
+        <div class="section-header">
+      <i class="fas fa-map-marker-alt" style="color:#ff5722;"></i>
+      <span>Delivery Address</span>
+    </div>
         ${addressDisplayHtml}
       </div>
       <div class="payment-section">
-        <div class="section-title"><i class="fas fa-wallet"></i> Payment Method</div>
+        <div class="section-header">
+      <i class="fas fa-credit-card" style="color:#9c27b0;"></i>
+      <span>Payment Method</span>
+    </div>
         <div class="payment-option" id="payOnlineOption">
           <input type="radio" name="payment" value="online" id="payOnline" ${selectedPayment === 'online' ? 'checked' : ''}>
           <label for="payOnline">Pay Online <i class="fas fa-bolt" style="color:#eab308;"></i></label>
@@ -2736,26 +2779,60 @@
           rzp.open();
         } catch (err) { hideLoading(); showToast(err.message, true); }
       } else {
-        showLoading('Placing order...');
-        try {
-          const res = await fetch('/api/place-order-cod', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(orderData) });
-          if (res.status === 401) {
-            showToast('Session expired. Please login again.', true);
-            await supabaseClient.auth.signOut();
-            setTimeout(() => location.reload(), 2000);
-            return;
-          }
-          if (res.ok) {
-            localStorage.removeItem('cart'); localStorage.removeItem('appliedCoupon');
-            hideLoading();
-            vibrate([50, 50, 100]);
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff', '#1a1a1a'] });
-            document.getElementById('successOrderId').innerText = orderId;
-            document.getElementById('orderSuccessModal').style.display = 'flex';
-          }
-          else { const errText = await res.text(); throw new Error(errText); }
-        } catch (err) { hideLoading(); showToast('Failed to place order: ' + err.message, true); }
+        // --- COD CONFIRMATION STEP ---
+        document.getElementById('codConfirmAmount').innerText = `₹${finalPayable.toFixed(2)}`;
+        const codModal = document.getElementById('codConfirmModal');
+        codModal.style.display = 'flex';
+
+        // Wait for confirmation
+        return new Promise((resolve) => {
+          const confirmBtn = document.getElementById('finalConfirmCodBtn');
+          const cancelBtn = document.getElementById('cancelCodBtn');
+
+          const onConfirm = async () => {
+            codModal.style.display = 'none';
+            cleanup();
+            await executeCodOrder(orderData, token, orderId);
+            resolve();
+          };
+
+          const onCancel = () => {
+            codModal.style.display = 'none';
+            cleanup();
+            resolve();
+          };
+
+          const cleanup = () => {
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+          };
+
+          confirmBtn.addEventListener('click', onConfirm);
+          cancelBtn.addEventListener('click', onCancel);
+        });
       }
+    }
+
+    async function executeCodOrder(orderData, token, orderId) {
+      showLoading('Placing order...');
+      try {
+        const res = await fetch('/api/place-order-cod', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(orderData) });
+        if (res.status === 401) {
+          showToast('Session expired. Please login again.', true);
+          await supabaseClient.auth.signOut();
+          setTimeout(() => location.reload(), 2000);
+          return;
+        }
+        if (res.ok) {
+          localStorage.removeItem('cart'); localStorage.removeItem('appliedCoupon');
+          hideLoading();
+          vibrate([50, 50, 100]);
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#ffffff', '#1a1a1a'] });
+          document.getElementById('successOrderId').innerText = orderId;
+          document.getElementById('orderSuccessModal').style.display = 'flex';
+        }
+        else { const errText = await res.text(); throw new Error(errText); }
+      } catch (err) { hideLoading(); showToast('Failed to place order: ' + err.message, true); }
     }
 
     // 🔥 FIX 2: PREVENT UNNECESSARY SESSION CALLS 🔥
@@ -2846,16 +2923,35 @@
           });
         });
 
-        if (cart.length > 0) document.getElementById('checkoutArea').innerHTML = `<div class="empty-state"><i class="fas fa-lock"></i><p>Please login to checkout.</p><button onclick="event.stopPropagation(); document.getElementById('avatarTrigger')?.click()" class="place-order-btn">Login Now</button></div>`;
+        if (cart.length > 0) {
+          document.getElementById('checkoutArea').innerHTML = `<div class="empty-state"><i class="fas fa-lock"></i><p>Please login to checkout.</p><button id="cartLoginNowBtn" onclick="window.openLoginPopover(event)" class="place-order-btn">Login Now</button></div>`;
+        }
       }
+    }
 
-      // Close popover on outside click
-      document.addEventListener('click', (e) => {
-        if (!popover.contains(e.target) && e.target.id !== 'avatarTrigger') {
+    window.openLoginPopover = (e) => {
+      if(e) e.stopPropagation();
+      const popover = document.getElementById('profilePopover');
+      if(popover) {
+        popover.classList.add('show');
+      }
+    };
+
+    // Global listener outside to prevent duplicates
+    document.addEventListener('click', (e) => {
+      const popover = document.getElementById('profilePopover');
+      const trigger = document.getElementById('avatarTrigger');
+      const loginBtn = document.getElementById('cartLoginNowBtn');
+      
+      if (popover && popover.classList.contains('show')) {
+        if (!popover.contains(e.target) && 
+            e.target !== trigger && 
+            !trigger?.contains(e.target) && 
+            e.target !== loginBtn) {
           popover.classList.remove('show');
         }
-      });
-    }
+      }
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
       // Cooking Instructions Toggle
@@ -2928,7 +3024,7 @@
       });
 
       async function initLocation() {
-        const locText = document.getElementById('userLocation');
+        const locText = document.getElementById('estDeliveryHeader');
         const cached = localStorage.getItem('userLocationCache');
         const now = Date.now();
         if (cached) {

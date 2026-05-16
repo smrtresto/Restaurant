@@ -310,7 +310,9 @@ button:active {
       color: #aaa;
     }
     .delivery-info div { display: flex; align-items: flex-start; gap: 10px; }
-    .delivery-info i { margin-top: 2px; color: #22c55e; width: 14px; text-align: center; }
+    .delivery-info i { margin-top: 2px; width: 14px; text-align: center; }
+    .delivery-info i.fa-map-marker-alt { color: #ff5722; }
+    .delivery-info i.fa-phone-alt { color: #00bcd4; }
     .see-more-btn {
       background: rgba(34,197,94,0.1);
       border: 1px solid rgba(34,197,94,0.3);
@@ -616,7 +618,7 @@ button:active {
     </div>
   </div>
   <div class="main-content">
-    <div class="tabs-wrapper"><div class="tabs"><button class="tab-btn active" id="tabOrders">📦 Orders</button><button class="tab-btn" id="tabAddresses">📍 Addresses</button><button class="tab-btn" id="tabSupport">🎧 Support</button></div></div>
+    <div class="tabs-wrapper"><div class="tabs"><button class="tab-btn active" id="tabOrders"><i class="fas fa-box" style="color:#ff9800;"></i> Orders</button><button class="tab-btn" id="tabAddresses"><i class="fas fa-location-dot" style="color:#ff5722;"></i> Addresses</button><button class="tab-btn" id="tabSupport"><i class="fas fa-headset" style="color:#00bcd4;"></i> Support</button></div></div>
     <div id="ordersSection"><div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading your orders...</p></div></div>
     <div id="addressesSection" style="display:none;"><button id="addAddressBtn" class="add-address-btn"><i class="fas fa-plus"></i> Add new address</button><div id="addressesList"></div></div>
     <div id="supportSection" style="display:none;">
@@ -638,7 +640,24 @@ button:active {
     </div>
   </div>
   <div class="bottom-nav"><button class="nav-item" id="navHome"><i class="fas fa-home"></i><span>Home</span></button><button class="nav-item" id="navMenu"><i class="fas fa-utensils"></i><span>Menu</span></button><button class="nav-item" id="navCart"><i class="fas fa-shopping-cart"></i><span>Cart</span></button><button class="nav-item active" id="navAccount"><i class="fas fa-user"></i><span>Account</span></button></div>
-  <div id="addressModal" class="modal"><div class="modal-content"><div class="modal-header"><span id="modalTitle">Add Address</span><span id="closeModal" style="cursor:pointer; color:#666;">&times;</span></div><div class="modal-body"><div style="display:flex; gap:8px; margin:6px 0;"><input type="text" id="addrPincode" placeholder="Pincode" style="flex:1; margin:0;"><button id="detectPincodeBtn" style="background:#22c55e; color:black; border:none; padding:0 15px; border-radius:12px; cursor:pointer;" title="Detect Pincode"><i class="fas fa-location-arrow"></i></button></div><input type="text" id="addrName" placeholder="Full name"><input type="tel" id="addrPhone" placeholder="Phone number"><select id="addrArea"><option value="">Enter pincode first</option></select><select id="addrSubArea" style="display:none;"><option value="">Select Sub‑Area</option></select><textarea id="addrAddress" rows="3" placeholder="Street / Colony / Area"></textarea><input type="text" id="addrLandmark" placeholder="Landmark (Optional)"><label style="display:flex; align-items:center; gap:10px; margin-top:16px; font-size:0.9rem; color:#aaa; cursor:pointer;"><input type="checkbox" id="addrDefault" style="width:auto; transform:scale(1.2);"> <span>Set as default address</span></label></div><div class="modal-footer"><button class="cancel-btn" id="cancelAddressBtn">Cancel</button><button class="save-btn" id="saveAddressBtn">Save</button></div></div></div>
+  <div id="addressModal" class="modal"><div class="modal-content"><div class="modal-header"><span id="modalTitle">Add Address</span><span id="closeModal" style="cursor:pointer; color:#666;">&times;</span></div><div class="modal-body"><div style="display:flex; gap:8px; margin:6px 0;"><input type="text" id="addrPincode" placeholder="Pincode" style="flex:1; margin:0;"><button id="detectPincodeBtn" style="background:#22c55e; color:black; border:none; padding:0 15px; border-radius:12px; cursor:pointer;" title="Detect Pincode"><i class="fas fa-location-arrow"></i></button></div><input type="text" id="addrName" placeholder="Full name"><input type="tel" id="addrPhone" placeholder="Phone number"><select id="addrArea"><option value="">Enter pincode first</option></select><select id="addrSubArea" style="display:none;"><option value="">Select Sub‑Area</option></select><textarea id="addrAddress" rows="3" placeholder="Street, Apartment name, House No. etc."></textarea><input type="text" id="addrLandmark" placeholder="Delivery Guide / Landmark (Optional)"><label style="display:flex; align-items:center; gap:10px; margin-top:16px; font-size:0.9rem; color:#aaa; cursor:pointer;"><input type="checkbox" id="addrDefault" style="width:auto; transform:scale(1.2);"> <span>Set as default address</span></label></div><div class="modal-footer"><button class="cancel-btn" id="cancelAddressBtn">Cancel</button><button class="save-btn" id="saveAddressBtn">Save</button></div></div></div>
+  
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteConfirmModal" class="modal">
+    <div class="modal-content" style="max-width:380px; text-align:center; padding:30px;">
+      <div style="width:70px; height:70px; background:rgba(239,68,68,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:#ef4444; font-size:1.8rem;">
+        <i class="fas fa-trash-alt"></i>
+      </div>
+      <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:12px;">Delete Address?</h2>
+      <p style="color:#aaa; font-size:0.95rem; line-height:1.5; margin-bottom:24px;">
+        Are you sure you want to remove this address? This action cannot be undone.
+      </p>
+      <div style="display:flex; gap:12px; justify-content: center;">
+        <button id="cancelDeleteBtn" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; font-weight:600; cursor:pointer; padding:12px; border-radius:12px;">Cancel</button>
+        <button id="finalDeleteBtn" style="flex:1; background:#ef4444; border:none; color:#fff; font-weight:800; cursor:pointer; padding:12px; border-radius:12px;">Delete</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Support Ticket Modal -->
   <div id="supportModal" class="modal">
@@ -904,7 +923,7 @@ button:active {
               ${deliveryHtml}
               ${tax>0?`<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Tax</span><span>₹${tax.toFixed(2)}</span></div>`:''}
               <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;"><span>Total to Pay</span><span>₹${totalAmount.toFixed(2)}</span></div>
-              ${(offerDiscount>0||couponDiscount>0||totalDiscount>0)?`<div style="display:flex; justify-content:space-between; margin-top:6px; color:#22c55e; font-size:0.8rem;"><span><i class="fas fa-tag"></i> You save</span><span>₹${(offerDiscount+couponDiscount+totalDiscount).toFixed(2)}</span></div>`:''}
+              ${(offerDiscount>0||couponDiscount>0||totalDiscount>0)?`<div style="display:flex; justify-content:space-between; margin-top:6px; color:#22c55e; font-size:0.8rem;"><span><i class="fas fa-tag" style="color:#ffc107;"></i> You save</span><span>₹${(offerDiscount+couponDiscount+totalDiscount).toFixed(2)}</span></div>`:''}
             </div>
             <div class="delivery-info">
               <div><i class="fas fa-map-marker-alt"></i> <span>${escapeHtml(fullAddress)}</span></div>
@@ -914,10 +933,7 @@ button:active {
         </div>`; }
       
       async function renderOrdersUI(){ if(!currentUser) return; const container=document.getElementById('ordersSection'); if(!allOrders.length){ container.innerHTML=`<div class="empty-state"><i class="fas fa-box-open"></i><p>No orders yet</p><a href="/menu.html" style="color:#22c55e; text-decoration:none; font-weight:bold;">Browse Menu →</a></div>`; return; } const activeOrders=allOrders.filter(o=>o.order_status!=='delivered'&&o.order_status!=='cancelled'); let completedOrders=allOrders.filter(o=>o.order_status==='delivered'||o.order_status==='cancelled'); const visibleCompleted=showAllCompleted?completedOrders:completedOrders.slice(0,completedOrdersLimit); let html=''; if(activeOrders.length){ html+=`<div class="section-title">Active Orders</div>`; activeOrders.forEach(order=>{ html+=generateOrderCard(order); }); } if(completedOrders.length){ html+=`<div class="section-title">Past Orders</div>`; visibleCompleted.forEach(order=>{ html+=generateOrderCard(order); }); if(!showAllCompleted && completedOrders.length>completedOrdersLimit){ html+=`<button id="seeMoreBtn" class="see-more-btn">View ${completedOrders.length-completedOrdersLimit} more orders</button>`; } } container.innerHTML=html; updateLiveTimers(); visibleCompleted.forEach(order => animateTimeline(order)); if(!showAllCompleted && completedOrders.length>completedOrdersLimit){ document.getElementById('seeMoreBtn')?.addEventListener('click',()=>{ showAllCompleted=true; renderOrdersUI(); }); } }
-      async function loadOrders(){ if(!currentUser) return; const container=document.getElementById('ordersSection'); container.innerHTML=`<div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Fetching your orders...</p></div>`; const { data, error } = await supabaseClient.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }); if(error){ container.innerHTML=`<div class="empty-state">Error loading orders</div>`; return; } allOrders=data||[]; showAllCompleted=false; await renderOrdersUI(); }
-      window.toggleOrderDetails=(orderId)=>{ const card=document.querySelector(`.order-card[data-order-id="${orderId}"]`); if(card) card.classList.toggle('open'); };
-      
-      window.reorderPastOrder = (e, orderId) => {
+      window.reorderPastOrder = async (e, orderId) => {
         e.stopPropagation();
         const order = allOrders.find(o => o.id === orderId);
         if(!order) return;
@@ -939,13 +955,18 @@ button:active {
         localStorage.setItem('cart', JSON.stringify(currentCart));
         
         const btn = e.currentTarget;
+        const originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-check"></i> Added';
         btn.style.background = '#fff';
+        btn.style.color = '#000';
         
         setTimeout(() => {
           window.location.href = '/cart.html';
-        }, 500);
+        }, 800);
       };
+
+      async function loadOrders(){ if(!currentUser) return; const container=document.getElementById('ordersSection'); container.innerHTML=`<div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Fetching your orders...</p></div>`; const { data, error } = await supabaseClient.from('orders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }); if(error){ container.innerHTML=`<div class="empty-state">Error loading orders</div>`; return; } allOrders=data||[]; showAllCompleted=false; await renderOrdersUI(); }
+      window.toggleOrderDetails=(orderId)=>{ const card=document.querySelector(`.order-card[data-order-id="${orderId}"]`); if(card) card.classList.toggle('open'); };
       
       async function loadAddresses(){ 
         if(!currentUser) return; 
@@ -979,7 +1000,34 @@ button:active {
         document.getElementById('addressModal').style.display='flex'; 
       };
       
-      window.deleteAddress=async(id)=>{ if(confirm('Delete this address?')){ await supabaseClient.from('addresses').delete().eq('id', id); loadAddresses(); } };
+      window.deleteAddress = async (id) => {
+        const delModal = document.getElementById('deleteConfirmModal');
+        const finalBtn = document.getElementById('finalDeleteBtn');
+        const cancelBtn = document.getElementById('cancelDeleteBtn');
+
+        delModal.style.display = 'flex';
+
+        return new Promise((resolve) => {
+          const onConfirm = async () => {
+            delModal.style.display = 'none';
+            cleanup();
+            await supabaseClient.from('addresses').delete().eq('id', id);
+            loadAddresses();
+            resolve();
+          };
+          const onCancel = () => {
+            delModal.style.display = 'none';
+            cleanup();
+            resolve();
+          };
+          const cleanup = () => {
+            finalBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+          };
+          finalBtn.addEventListener('click', onConfirm);
+          cancelBtn.addEventListener('click', onCancel);
+        });
+      };
       window.setDefaultAddress=async(id)=>{ await supabaseClient.from('addresses').update({ is_default: false }).eq('user_id', currentUser.id); await supabaseClient.from('addresses').update({ is_default: true }).eq('id', id); loadAddresses(); };
       
       async function fetchAreasByPincode(pincode, selectedArea=null, selectedSubArea=null){ 
