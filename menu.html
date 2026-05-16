@@ -1038,6 +1038,72 @@
     .my-orders-popover-btn:hover {
       background: rgba(255, 255, 255, 0.1);
     }
+    /* Status Cards for Closed/Paused Categories */
+    .status-card {
+      background: rgba(20, 20, 20, 0.6);
+      backdrop-filter: blur(20px);
+      border-radius: 32px;
+      padding: 40px 24px;
+      text-align: center;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      margin-top: 20px;
+      animation: fadeInScale 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .status-icon-wrap {
+      width: 80px; height: 80px;
+      background: rgba(34, 197, 94, 0.1);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 2.2rem;
+      color: #22c55e;
+      position: relative;
+    }
+    .status-icon-wrap.paused {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+    .status-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .status-msg {
+      font-size: 0.95rem;
+      color: #aaa;
+      line-height: 1.6;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    .status-time-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 16px;
+      border-radius: 30px;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #22c55e;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .category-chip.closed { opacity: 0.6; }
+    .category-chip.closed span { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
+    .closed-dot {
+      position: absolute; top: 0; right: 4px;
+      width: 12px; height: 12px;
+      background: #f59e0b;
+      border-radius: 50%;
+      border: 2px solid #000;
+      z-index: 5;
+    }
+    .closed-dot.paused { background: #ef4444; }
+
   </style>
 </head>
 
@@ -1102,6 +1168,7 @@
     });
 
     let allMenuItems = [];
+    let allCategories = [];
     let currentCategory = 'all';
     let searchTerm = '';
     let isVegOnly = false;
@@ -1192,16 +1259,69 @@
     `).join('');
     }
 
+    function isCategoryOpen(cat) {
+      if (!cat) return true;
+      if (cat.is_active === false) return { status: 'paused' };
+      
+      const now = new Date();
+      // Get IST time (India Standard Time)
+      const istTime = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).format(now);
+
+      const toSec = (t) => {
+        if (!t) return null;
+        const parts = t.split(':');
+        return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + (parseInt(parts[2]) || 0);
+      };
+
+      const currentTime = toSec(istTime);
+      const s1 = toSec(cat.start_time) || 0;
+      const e1 = toSec(cat.end_time) || 86399;
+      const s2 = toSec(cat.start_time_2);
+      const e2 = toSec(cat.end_time_2);
+
+      const inSlot1 = (currentTime >= s1 && currentTime <= e1);
+      const inSlot2 = (s2 !== null && e2 !== null) ? (currentTime >= s2 && currentTime <= e2) : false;
+
+      if (!inSlot1 && !inSlot2) {
+        return { 
+          status: 'timed', 
+          s1: cat.start_time, e1: cat.end_time,
+          s2: cat.start_time_2, e2: cat.end_time_2 
+        };
+      }
+      return { status: 'open' };
+    }
+
     async function loadCategories() {
       const { data, error } = await supabaseClient.from('categories').select('*').order('display_order');
       const categoriesDiv = document.getElementById('categoriesList');
       if (error || !data?.length) { categoriesDiv.innerHTML = '<div class="category-chip"><span>Menu</span></div>'; return; }
+      
+      allCategories = data;
       let html = `<div class="category-chip active" data-category="all"><div class="cat-fallback">${CATEGORY_FALLBACK_SVG}</div><span>All</span></div>`;
+      
       data.forEach(cat => {
+        const availability = isCategoryOpen(cat);
+        const isClosed = availability.status !== 'open';
         const imgHtml = cat.image_url
           ? `<img src="${escapeHtml(cat.image_url)}" loading="lazy">`
           : `<div class="cat-fallback">${CATEGORY_FALLBACK_SVG}</div>`;
-        html += `<div class="category-chip" data-category="${cat.id}">${imgHtml}<span>${escapeHtml(cat.name)}</span></div>`;
+        
+        const dotCls = isClosed ? (availability.status === 'paused' ? 'paused' : '') : '';
+        const closedDot = isClosed ? `<div class="closed-dot ${dotCls}"></div>` : '';
+        const closedCls = isClosed ? 'closed' : '';
+
+        html += `<div class="category-chip ${closedCls}" data-category="${cat.id}" style="position:relative;">
+          ${closedDot}
+          ${imgHtml}
+          <span>${escapeHtml(cat.name)}</span>
+        </div>`;
       });
       categoriesDiv.innerHTML = html;
       document.querySelectorAll('.category-chip').forEach(chip => {
@@ -1269,6 +1389,42 @@
       });
 
       const menuGrid = document.getElementById('menuGrid');
+      
+      // Category Availability Logic
+      if (currentCategory !== 'all') {
+        const catObj = allCategories.find(c => c.id == currentCategory);
+        const availability = isCategoryOpen(catObj);
+        
+        if (availability.status === 'paused') {
+          menuGrid.innerHTML = `
+            <div class="status-card">
+              <div class="status-icon-wrap paused"><i class="fas fa-hand-paper"></i></div>
+              <div class="status-title">Taking a Short Break! 🛑</div>
+              <div class="status-msg">We've temporarily paused orders for this category to ensure the best quality for every dish. We'll be back online very soon! 🚀</div>
+              <div style="margin-top:20px; font-size:0.8rem; color:#666;">Try our other delicious categories while you wait!</div>
+            </div>`;
+          return;
+        } else if (availability.status === 'timed') {
+          const formatTime = (t) => {
+            if(!t) return '';
+            const [h, m] = t.split(':');
+            const hour = parseInt(h);
+            return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+          };
+          const slot1Str = `${formatTime(availability.s1)} - ${formatTime(availability.e1)}`;
+          const slot2Str = availability.s2 ? `<br>and <b>${formatTime(availability.s2)}</b> to <b>${formatTime(availability.e2)}</b>` : '';
+          
+          menuGrid.innerHTML = `
+            <div class="status-card">
+              <div class="status-icon-wrap"><i class="fas fa-utensils"></i></div>
+              <div class="status-title">We're getting ready! 👨‍🍳</div>
+              <div class="status-msg">We are currently preparing our delicious items for this category. This section is available from <b>${slot1Str}</b> ${slot2Str}. Why not try our other specialties in the meantime?</div>
+              <div class="status-time-badge"><i class="fas fa-clock"></i> Available Today</div>
+            </div>`;
+          return;
+        }
+      }
+
       if (filtered.length === 0) {
         menuGrid.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;opacity:0.85">
         <i class="fas fa-utensils" style="font-size:2.8rem;color:#22c55e;margin-bottom:16px;opacity:0.7"></i>
@@ -1279,7 +1435,11 @@
       }
 
       menuGrid.innerHTML = filtered.map(item => {
-        const isActive = item.is_active !== false;
+        const itemCat = allCategories.find(c => c.id == item.category_id);
+        const catAvailability = isCategoryOpen(itemCat);
+        const isCatClosed = catAvailability.status !== 'open';
+        const isActive = (item.is_active !== false) && !isCatClosed;
+        
         const qty = isActive ? getQty(item.id) : 0;
         const nameEscaped = escapeHtml(item.name);
         const originalPrice = parseFloat(item.price);
@@ -1308,7 +1468,8 @@
 
         let actionHtml;
         if (!isActive) {
-          actionHtml = `<div class="cart-action-btn disabled" style="background:#555; cursor:not-allowed; pointer-events:none;"><span class="add-text" style="color:#aaa;">❌ Unavailable</span></div>`;
+          const reason = isCatClosed ? (catAvailability.status === 'paused' ? 'Paused' : 'Opens Soon') : 'Unavailable';
+          actionHtml = `<div class="cart-action-btn disabled" style="background:#444; cursor:not-allowed; pointer-events:none;"><span class="add-text" style="color:#888; font-size:0.75rem;"><i class="fas fa-lock"></i> ${reason}</span></div>`;
         } else {
           actionHtml = `<div class="cart-action-btn" data-id="${item.id}" data-name="${nameEscaped}" data-price="${cartPrice}" data-veg="${isVeg}" data-mode="${qty > 0 ? 'qty' : 'add'}">
           ${qty > 0 ? `

@@ -1641,18 +1641,44 @@
       const container = document.getElementById('categoriesList');
       if (error) { container.innerHTML = '<p>Error loading categories</p>'; return; }
       if (!data?.length) { container.innerHTML = '<p>No categories. Click + to add.</p>'; return; }
-      container.innerHTML = data.map(c => `
-      <div class="list-item">
-        <div class="item-info">
-          ${c.image_url ? `<img src="${c.image_url}">` : `<div style="width:50px;height:50px;background:#2a2a2a;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-folder-open"></i></div>`}
-          <div class="item-details"><strong>${escapeHtml(c.name)}</strong><br>Order: ${c.display_order}</div>
+      
+      container.innerHTML = data.map(c => {
+        const isActive = c.is_active !== false;
+        let timingStr = '';
+        if (c.start_time && c.end_time) {
+          timingStr = `<span style="font-size:0.7rem; color:#888;"><i class="fas fa-clock"></i> ${c.start_time.substring(0,5)} - ${c.end_time.substring(0,5)}`;
+          if (c.start_time_2 && c.end_time_2) {
+            timingStr += ` | ${c.start_time_2.substring(0,5)} - ${c.end_time_2.substring(0,5)}`;
+          }
+          timingStr += `</span>`;
+        }
+        
+        return `
+        <div class="list-item">
+          <div class="item-info">
+            ${c.image_url ? `<img src="${c.image_url}">` : `<div style="width:50px;height:50px;background:#2a2a2a;border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-folder-open"></i></div>`}
+            <div class="item-details">
+              <strong>${escapeHtml(c.name)}</strong> ${timingStr}<br>
+              <span style="font-size:0.75rem; color:#666;">Order: ${c.display_order}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <label class="switch"><input type="checkbox" class="cat-toggle-active" data-id="${c.id}" ${isActive ? 'checked' : ''}><span class="slider"></span></label>
+            <button onclick="editCategory(${c.id})">Edit</button>
+            <button class="danger" onclick="deleteCategory(${c.id})">Delete</button>
+          </div>
         </div>
-        <div class="item-actions">
-          <button onclick="editCategory(${c.id})">Edit</button>
-          <button class="danger" onclick="deleteCategory(${c.id})">Delete</button>
-        </div>
-      </div>
-    `).join('');
+      `}).join('');
+
+      document.querySelectorAll('.cat-toggle-active').forEach(toggle => {
+        toggle.addEventListener('change', async (e) => {
+          const catId = parseInt(toggle.dataset.id);
+          const isActive = toggle.checked;
+          const { error } = await supabaseClient.from('categories').update({ is_active: isActive }).eq('id', catId);
+          if (error) { showToast('Failed to update status', true); toggle.checked = !isActive; }
+          else showToast(isActive ? 'Category enabled' : 'Category disabled');
+        });
+      });
     }
     window.editCategory = async (id) => {
       const { data: c } = await supabaseClient.from('categories').select('*').eq('id', id).single();
@@ -1675,6 +1701,36 @@
       <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-top:5px; display:none; font-weight:bold;"></div>
 
       <input id="display_order" type="number" placeholder="Display order" value="${c.display_order || 0}"><div class="helper-text">Lower numbers appear first</div>
+      
+      <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; margin-top:15px; border:1px solid rgba(255,255,255,0.05);">
+        <div style="font-weight:bold; font-size:0.9rem; margin-bottom:12px; color:#22c55e;"><i class="fas fa-clock"></i> Category Scheduling</div>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">Start Time (24h)</label>
+            <input id="start_time" type="time" value="${c.start_time || '00:00:00'}" style="margin:5px 0;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">End Time (24h)</label>
+            <input id="end_time" type="time" value="${c.end_time || '23:59:59'}" style="margin:5px 0;">
+          </div>
+        </div>
+        
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">Start Time Slot 2 (Opt)</label>
+            <input id="start_time_2" type="time" value="${c.start_time_2 || ''}" style="margin:5px 0;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">End Time Slot 2 (Opt)</label>
+            <input id="end_time_2" type="time" value="${c.end_time_2 || ''}" style="margin:5px 0;">
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="is_active" ${c.is_active !== false ? 'checked' : ''}> Master Switch (On/Off)
+          </label>
+        </div>
+      </div>
     `, async () => {
         const fileInput = document.getElementById('imageInput');
         const file = fileInput?.files[0];
@@ -1691,8 +1747,18 @@
 
         const name = document.getElementById('name').value;
         const display_order = parseInt(document.getElementById('display_order').value);
+        const start_time = document.getElementById('start_time').value;
+        const end_time = document.getElementById('end_time').value;
+        const start_time_2 = document.getElementById('start_time_2').value || null;
+        const end_time_2 = document.getElementById('end_time_2').value || null;
+        const is_active = document.getElementById('is_active').checked;
 
-        await supabaseClient.from('categories').update({ name, image_url, display_order }).eq('id', id);
+        await supabaseClient.from('categories').update({ 
+          name, image_url, display_order, 
+          start_time, end_time, 
+          start_time_2, end_time_2, 
+          is_active 
+        }).eq('id', id);
         showToast('Category updated');
         loadCategories();
       });
@@ -1770,6 +1836,36 @@
       <div id="uploadStatus" style="font-size:0.8rem; color:#22c55e; margin-bottom:10px; display:none; font-weight:bold;"></div>
 
       <input id="display_order" type="number" placeholder="Display order" value="0"><div class="helper-text">Lower numbers appear first</div>
+
+      <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; margin-top:15px; border:1px solid rgba(255,255,255,0.05);">
+        <div style="font-weight:bold; font-size:0.9rem; margin-bottom:12px; color:#22c55e;"><i class="fas fa-clock"></i> Category Scheduling</div>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">Start Time (24h)</label>
+            <input id="start_time" type="time" value="00:00:00" style="margin:5px 0;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">End Time (24h)</label>
+            <input id="end_time" type="time" value="23:59:59" style="margin:5px 0;">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">Start Time Slot 2 (Opt)</label>
+            <input id="start_time_2" type="time" value="" style="margin:5px 0;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.75rem; color:#888;">End Time Slot 2 (Opt)</label>
+            <input id="end_time_2" type="time" value="" style="margin:5px 0;">
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="is_active" checked> Master Switch (On/Off)
+          </label>
+        </div>
+      </div>
     `, async () => {
         const fileInput = document.getElementById('imageInput');
         const file = fileInput?.files[0];
@@ -1786,8 +1882,18 @@
 
         const name = document.getElementById('name').value;
         const display_order = parseInt(document.getElementById('display_order').value);
+        const start_time = document.getElementById('start_time').value;
+        const end_time = document.getElementById('end_time').value;
+        const start_time_2 = document.getElementById('start_time_2').value || null;
+        const end_time_2 = document.getElementById('end_time_2').value || null;
+        const is_active = document.getElementById('is_active').checked;
 
-        await supabaseClient.from('categories').insert([{ name, image_url, display_order }]);
+        await supabaseClient.from('categories').insert([{ 
+          name, image_url, display_order, 
+          start_time, end_time, 
+          start_time_2, end_time_2, 
+          is_active 
+        }]);
         showToast('Category added');
         loadCategories();
       });
